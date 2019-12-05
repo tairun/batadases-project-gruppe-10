@@ -1,0 +1,2 @@
+class DataIntegrator(object):
+    pass
