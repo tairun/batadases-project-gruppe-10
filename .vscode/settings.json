@@ -1,0 +1,23 @@
+{
+  "python.pythonPath": "C:\\Users\\lucku\\.virtualenvs\\batadases-project-gruppe-10-Ht-MA7oa\\Scripts\\python.exe",
+  "python.linting.pylintEnabled": false,
+  "python.linting.mypyEnabled": true,
+  "python.testing.unittestArgs": [
+    "-v",
+    "-s",
+    "./test",
+    "-p",
+    "*test.py"
+  ],
+  "python.testing.pytestEnabled": false,
+  "python.testing.nosetestsEnabled": false,
+  "python.testing.unittestEnabled": true,
+  "python.terminal.executeInFileDir": false,
+  "spellright.language": [
+    "en"
+  ],
+  "spellright.documentTypes": [
+    "plaintext",
+    "markdown"
+  ]
+}
