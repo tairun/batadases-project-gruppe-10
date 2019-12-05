@@ -13,6 +13,7 @@ requests = "*"
 tqdm = "*"
 psycopg2 = "*"
 pandas = "*"
+lxml = "*"
 
 [requires]
 python_version = "3.7"
