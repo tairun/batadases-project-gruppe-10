@@ -4,3 +4,4 @@ __pycache__
 db_dump/
 
 *.zip
+raw_data/gdelt/*

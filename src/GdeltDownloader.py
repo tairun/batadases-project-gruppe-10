@@ -1,18 +1,20 @@
+from typing import Dict, List, Tuple, Optional, Union, Iterator
+from tqdm import tqdm
+from bs4 import BeautifulSoup as bs
+import requests
+from concurrent.futures import ThreadPoolExecutor
+from tempfile import TemporaryDirectory
+from datetime import datetime
+from itertools import repeat
+from zipfile import ZipFile
+from pprint import pprint
+from hashlib import md5
 import os
 import re
 import sys
 import shutil
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
-from hashlib import md5
-from pprint import pprint
-from tempfile import TemporaryDirectory
-from typing import Dict, List, Tuple
-from itertools import repeat
-
-import requests
-from bs4 import BeautifulSoup as bs
-from tqdm import tqdm
+import logging
+logging.basicConfig(level=logging.INFO)
 
 
 class GdeltDownloader(object):
@@ -47,7 +49,7 @@ class GdeltDownloader(object):
         links = soup.find_all('li')
         # print(links)
 
-        for link in tqdm(links, desc="Parsing links..."):
+        for link in tqdm(links, desc="Parsing links ..."):
             try:
                 file = link.find('a')['href']
                 date_string = tuple(int(x)
@@ -65,41 +67,109 @@ class GdeltDownloader(object):
                     file_links.append(link_obj)
 
             except Exception as e:
-                #print("Link was empty!", e)
+                # print("Link was empty!", e)
                 continue  # Skip link if one of the properties was not found
 
         print(f"{len(file_links)} links found!")
         return file_links
 
-    def download_file(self, file_obj: Dict, dl_path: str) -> Tuple[str, bool]:
+    def download_file(self, file_obj: Dict, dl_path: str, extract: bool = True, remove: bool = True) -> Optional[Tuple[str, bool]]:
+        """Downloads and extract a given file. Skips the file if it already exists.
+
+        Parameters
+        ----------
+        file_obj : Dict
+            Information about file to download.
+        dl_path : str
+            Path to download file to.
+
+        Returns
+        -------
+        Optional[Tuple[str, bool]]
+            Return a tuple with information about the download. First item is the local filename, second item is a bool which is set to true if the md5 sum of the file matches. Can be none if the download was skipped.
+        """
         local_filename = file_obj['file'].split('/')[-1]
-        #print(f"Downloading: {file_obj}")
-        with requests.get(f"{self.base_url}{file_obj['file']}", stream=True) as r:
-            # with self.dl_dir as tempdir:
-            with open(os.path.join(dl_path, local_filename), 'wb') as f:
-                shutil.copyfileobj(r.raw, f)
-                is_md5_equal = (
-                    self.md5sum(os.path.join(dl_path, local_filename)) == file_obj['md5'])
+        file_path = os.path.join(dl_path, local_filename)
 
-        return local_filename, is_md5_equal
+        result = None
 
-    def download_links(self, files: List[Dict], dl_path: str, thread_count: int = 1) -> Tuple[str, bool]:
-        print(self.dl_dir)
-        _ = input()
+        logging.info(f"{file_path}, exists: {os.path.isfile(file_path)}")
+
+        if not os.path.isfile(file_path):
+            with requests.get(file_path, stream=True) as r:
+                with open(file_path, "wb") as f:
+                    shutil.copyfileobj(r.raw, f)
+                    is_md5_equal = (
+                        self.md5sum(file_path) == file_obj['md5'])
+
+            result = (local_filename, is_md5_equal)
+        else:
+            print(f"Skipping download for: {file_path}")
+
+        if extract:
+            self.unzip(file_path, dl_path)
+
+        return result
+
+    def download_links(self, files: List[Dict], dl_path: str, thread_count: int = 1) -> Iterator[Optional[Tuple[str, bool]]]:
+        """Takes a dict and dispatches the download links to different threads to download.
+
+        Parameters
+        ----------
+        files : List[Dict]
+            Contains the files to download, along with more information about the files (md5, size and date)
+        dl_path : str
+            Path to download files to.
+        thread_count : int, optional
+            Number of threads, by default 1
+
+        Returns
+        -------
+        Iterator[Optional[Tuple[str, bool]]]
+            Iterator object with download results.
+        """
+
+        logging.info(files[0:2])
+        _ = input("Press any key to start download and extraction process ...")
         executor = ThreadPoolExecutor(max_workers=thread_count)
-        # with self.dl_dir as temp:
-        results = executor.map(self.download_file, files, repeat(dl_path))
+        results = tqdm(executor.map(
+            self.download_file, files, repeat(dl_path)), desc="Queuing downloads ...")
 
         return results
 
-    def md5sum(self, fname: str):
-        with open(fname, "rb") as f:
+    def md5sum(self, file_path: str) -> str:
+        """Calculate md5 sum of given file.
+
+        Parameters
+        ----------
+        file_path : str
+            Full path of file.
+
+        Returns
+        -------
+        str
+            md5 hexdigest
+        """
+        with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 md5().update(chunk)
         return md5().hexdigest()
 
-    def unzip(self, fname: str):
-        pass
+    def unzip(self, file_path: str, extract_path: str, remove: bool = True) -> None:
+        """Unzip a file to the specified path and delete the file after.
+
+        Parameters
+        ----------
+        file_path : str
+            Full path of file to be extracted.
+        extract_path : str
+            Destination path for extracted file.
+        """
+        with ZipFile(file_path, mode="r") as zipobj:
+            zipobj.extractall(path=extract_path)
+
+        if remove:
+            os.remove(file_path)  # Remove file after done unzipping
 
 
 if __name__ == "__main__":

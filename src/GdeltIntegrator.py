@@ -19,8 +19,6 @@ class GdeltIntegrator(DataIntegrator):
             else:
                 data = pd.read_csv(f, sep="\t")
 
-            print(data.head(2))
-
             for row in data.iterrows():
                 yield row
 
