@@ -11,6 +11,8 @@ autopep8 = "*"
 beautifulsoup4 = "*"
 requests = "*"
 tqdm = "*"
+psycopg2 = "*"
+pandas = "*"
 
 [requires]
 python_version = "3.7"

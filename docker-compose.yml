@@ -1,0 +1,24 @@
+version: "3.7"
+
+services:
+  db:
+    image: postgres:12.1-alpine
+    restart: always
+    env_file: .env
+    #environment:
+    # empty
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db_dump:/dump
+    ports:
+      - 5432:5432
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+volumes:
+  db_data:
+    driver: local
