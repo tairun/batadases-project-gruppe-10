@@ -1,5 +1,5 @@
 {
-  "python.pythonPath": "C:\\Users\\lucku\\.virtualenvs\\batadases-project-gruppe-10-Ht-MA7oa\\Scripts\\python.exe",
+  "python.pythonPath": "/home/luc/.local/share/virtualenvs/database-project-gruppe-10-YsV_BiwR/bin/python",
   "python.linting.pylintEnabled": false,
   "python.linting.mypyEnabled": true,
   "python.testing.unittestArgs": [
@@ -20,5 +20,6 @@
     "plaintext",
     "markdown",
     "python"
-  ]
+  ],
+  "python.linting.enabled": true
 }
