@@ -13,3 +13,6 @@ db_dump/
 
 # Temporary download directory
 raw_data/gdelt/*
+
+# Misc.
+objectdb

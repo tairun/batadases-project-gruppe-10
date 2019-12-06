@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
+from argparse import ArgumentParser
 from src.GdeltDownloader import GdeltDownloader
+import logging
+
+logging.basicConfig(level=logging.WARNING)
 
 
 def main():

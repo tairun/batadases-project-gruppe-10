@@ -18,8 +18,6 @@ import sys
 import shutil
 import logging
 
-logging.basicConfig(level=logging.WARNING)
-
 
 class GdeltDownloader(object):
 
@@ -76,7 +74,7 @@ class GdeltDownloader(object):
         return file_links
 
     #TODO: Change return type to a dict.
-    def download_file(self, file_obj: Dict, dl_path: str, extract: bool = True, remove: bool = True) -> Optional[Tuple[str, bool]]:
+    def download_file(self, file_obj: Dict, dl_path: str, extract: bool = True, remove: bool = True, retries: int = 5) -> Optional[Tuple[str, bool]]:
         """Downloads and extract a given file. Skips the file if it already exists.
 
         Parameters
@@ -91,34 +89,44 @@ class GdeltDownloader(object):
         Optional[Tuple[str, bool]]
             Return a tuple with information about the download. First item is the local filename, second item is a bool which is set to true if the md5 sum of the file matches. Can be none if the download was skipped.
         """
-        local_filename = file_obj['file'].split('/')[-1]  # Get filename from file_obj for later use.
-        file_path = os.path.join(dl_path, local_filename)  # Compose relative file path. This is where the file gets saved.
+        filename = file_obj['file'].split('/')[-1]  # Get filename from file_obj for later use.
+        zip_local_path = os.path.join(dl_path, filename)  # Compose relative file path. This is where the file gets saved.
 
         result = None
 
         try:
-            size = os.path.getsize(file_path)
+            size = os.path.getsize(zip_local_path)
             if size == 0:
-                os.remove(file_path)
+                os.remove(zip_local_path)
         except os.error as e:
-            logging.debug(f"File '{file_path}' does not exist.")
+            logging.debug(f"File '{zip_local_path}' does not exist.")
 
         # Skip download if .zip or .csv file already exists.
-        if not os.path.isfile(file_path) and not os.path.isfile(os.path.splitext(file_path)[0]):
-            with requests.get(os.path.join(self.base_url, local_filename), stream=True) as r:
-                with open(file_path, "wb") as f:
+        if not os.path.isfile(zip_local_path) and not os.path.isfile(os.path.splitext(zip_local_path)[0]):
+            uri = os.path.join(self.base_url, filename)
+            with requests.get(uri, stream=True) as r:
+                with open(zip_local_path, "wb") as f:
                     shutil.copyfileobj(r.raw, f)
                     is_md5_equal = (
-                        self.md5sum(file_path) == file_obj['md5'])
+                        self.md5sum(zip_local_path) == file_obj['md5'])
 
-            result = (local_filename, is_md5_equal)
-        else:
-            logging.debug(f"Skipping download for: {file_path}.")
+            if not is_md5_equal and retries > 0:
+                logging.info(f"MD5 mismtach. Retrying download for file '{filename}'. {retries} attempts left.")
+                return self.download_file(file_obj, dl_path, extract, remove, retries=retries-1)
 
-        if extract and not os.path.isfile(os.path.splitext(file_path)[0]):
-            self.unzip(file_path, dl_path)
+            csv_local_path = os.path.join(
+                dl_path, os.path.splitext(filename)[0])
+            result = (zip_local_path, is_md5_equal)
         else:
-            logging.debug(f"Skipping extraction of {file_path}.")
+            logging.debug(f"Skipping download for: {zip_local_path}.")
+
+        if extract and not os.path.isfile(os.path.splitext(zip_local_path)[0]):
+            self.unzip(zip_local_path, dl_path)
+            csv_local_path = os.path.join(
+                dl_path, os.path.splitext(filename)[0])
+            result = (csv_local_path, is_md5_equal)
+        else:
+            logging.debug(f"Skipping extraction of {zip_local_path}.")
 
         return result
 
