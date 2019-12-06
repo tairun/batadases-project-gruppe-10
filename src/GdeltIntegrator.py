@@ -1,7 +1,11 @@
+import os
 import pandas as pd
+import psycopg2
+import logging
+
 from DataIntegrator import DataIntegrator
 
-from typing import List, Generator
+from typing import List, Generator, Tuple
 
 
 class GdeltIntegrator(DataIntegrator):
@@ -59,8 +63,36 @@ class GdeltIntegrator(DataIntegrator):
         for row in self.read_csv(file_path, 5):
             self.insert_actor1(row)
 
+    def connect_database(self, host: str = "localhost", port: int = 5432, dbname: str = None, user: str = None, passwd: str = None) -> Tuple:
+        try:
+            dbname = dbname if dbname else os.environ["POSTGRES_DB"]
+            user = user if user else os.environ["POSTGRES_USER"]
+            passwd = passwd if passwd else os.environ["POSTGRES_PASSOWRD"]
+        except KeyError as e:
+            logging.error(
+                "Couldn't load database credentials from environment. Using defaults.")
+            dbname = "db-proj-hs19"
+            user = "db-proj"
+            passwd = input(
+                f"Enter password for database {dbname.upper()} and user {user.upper()}:")
+
+        try:
+            conn = psycopg2.connect(
+                host=host, port=port, dbname=dbname, user=user, password=passwd)
+            cur = conn.cursor()
+
+            cur.execute("SELECT version()")
+            print(f"Connected to: {cur.fetchone()}")
+
+            return conn, cur
+        except Exception as e:
+            logging.error("Could not connect to database!")
+            conn.close()
+            return None, None
+
 
 if __name__ == "__main__":
     integrator = GdeltIntegrator()
     file = "raw_data/20191027.export.CSV"
     integrator.wrapper_read(file)
+    integrator.connect_database()
