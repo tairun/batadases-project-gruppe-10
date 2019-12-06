@@ -1,5 +1,5 @@
 import pandas as pd
-from src.DataIntegrator import DataIntegrator
+from DataIntegrator import DataIntegrator
 
 from typing import List, Generator
 
@@ -38,7 +38,7 @@ class GdeltIntegrator(DataIntegrator):
 
     def read_csv(self, file_path: str, limit: int = None) -> Generator:
         """
-        Generetor that yields lines of a file.
+        Generator that yields lines of a file.
         """
         with open(file_path, mode="r") as f:
             if limit:
@@ -48,13 +48,12 @@ class GdeltIntegrator(DataIntegrator):
                 data = pd.read_csv(
                     f, sep="\t", names=self.gdelt_headers, encoding="utf8")
 
-            for row in data.iterrows():
+            for index, row in data.iterrows():
                 yield row
 
     def insert_actor1(self, row):
         # TODO: implement SQL Parser
         print(row[self.gdelt_actor1])
-        print("xd")
 
     def wrapper_read(self, file_path):
         for row in self.read_csv(file_path, 5):
