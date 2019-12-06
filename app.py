@@ -2,6 +2,7 @@
 
 from argparse import ArgumentParser
 from src.GdeltDownloader import GdeltDownloader
+from concurrent.futures import as_completed
 import logging
 
 logging.basicConfig(level=logging.WARNING)
@@ -22,6 +23,7 @@ def main():
     link_list = gdelt.get_file_links()
     # Download the individual files and extract the content from the zip archives
     results = gdelt.download_links(link_list, gdelt_raw_data, gdelt.max_threads)
+    #TODO: Apply as_completed() to results list.
 
 if __name__ == "__main__":
     main()
