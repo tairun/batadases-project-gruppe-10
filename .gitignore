@@ -1,7 +1,15 @@
-__pycache__
-.mypy_cache
+# General files
+*.zip
+
+# Credentials
 .env
+
+# Python
+**/__pycache__/
+**/.mypy_cache/
+
+# Database dumps
 db_dump/
 
-*.zip
+# Temporary download directory
 raw_data/gdelt/*
