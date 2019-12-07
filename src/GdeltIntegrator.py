@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import os
-import pandas as pd
-import psycopg2
 import logging
+from tqdm import tqdm
+from dotenv import load_dotenv
+from psycopg2.errors import UniqueViolation
 
+from utils import bufcount
 from DataIntegrator import DataIntegrator
 
 from typing import List, Generator, Tuple
@@ -16,6 +18,7 @@ class GdeltIntegrator(DataIntegrator):
     """
 
     def __init__(self):
+        self.table_script: str = "./schema/prepare_database.psql"
         self.gdelt_headers = ["GLOBALEVENTID", "SQLDATE", "MonthYear", "Year", "FractionDate", "Actor1Code", "Actor1Name",
                               "Actor1CountryCode", "Actor1KnownGroupCode", "Actor1EthnicCode", "Actor1Religion1Code",
                               "Actor1Religion2Code", "Actor1Type1Code", "Actor1Type2Code", "Actor1Type3Code", "Actor2Code",
@@ -42,59 +45,44 @@ class GdeltIntegrator(DataIntegrator):
         self.gdelt_data_management_fields = [
             self.gdelt_headers[i] for i in [56, 57]]
 
-    def read_csv(self, file_path: str, limit: int = None) -> Generator:
-        """
-        Generator that yields lines of a file.
-        """
-        with open(file_path, mode="r") as f:
-            if limit:
-                data = pd.read_csv(f, nrows=limit, sep="\t",
-                                   names=self.gdelt_headers)
-            else:
-                data = pd.read_csv(
-                    f, sep="\t", names=self.gdelt_headers, encoding="utf8")
-
-            for index, row in data.iterrows():
-                yield row
-
-    def insert_actor1(self, row):
-        # TODO: implement SQL Parser
-        print(row[self.gdelt_actor1])
-
-    def wrapper_read(self, file_path):
-        for row in self.read_csv(file_path, 5):
-            self.insert_actor1(row)
-
-    def connect_database(self, host: str = "localhost", port: int = 5432, dbname: str = None, user: str = None, passwd: str = None) -> Tuple:
-        try:
-            dbname = dbname if dbname else os.environ["POSTGRES_DB"]
-            user = user if user else os.environ["POSTGRES_USER"]
-            passwd = passwd if passwd else os.environ["POSTGRES_PASSOWRD"]
-        except KeyError as e:
-            logging.error(
-                "Couldn't load database credentials from environment. Using defaults.")
-            dbname = "db-proj-hs19"
-            user = "db-proj"
-            passwd = input(
-                f"Enter password for database {dbname.upper()} and user {user.upper()}:")
+    def insert_data_management_fields(self, row, conn, cur) -> None:
+        parameter_list = ['%s']*len(self.gdelt_data_management_fields)
+        insert_string = f"INSERT INTO data_management_fields (dateadded, sourceurl) VALUES ({','.join(parameter_list)}) ON CONFLICT (sourceurl) DO NOTHING"
+        row_list = row[self.gdelt_data_management_fields].values.tolist()
 
         try:
-            conn = psycopg2.connect(
-                host=host, port=port, dbname=dbname, user=user, password=passwd)
-            cur = conn.cursor()
+            cur.execute(insert_string, row_list)
+        except UniqueViolation as e:
+            print("Duplicate URL!!!")
 
-            cur.execute("SELECT version()")
-            print(f"Connected to: {cur.fetchone()}")
+    def insert_action_geo(self, row, conn, cur) -> None:
+        parameter_list = ['%s']*11
+        insert_string = f"INSERT INTO actor1 VALUES ({','.join(parameter_list)})"
+        row_list = row[self.gdelt_actor1].values.tolist()
+        cur.execute(insert_string, row_list)
 
-            return conn, cur
-        except Exception as e:
-            logging.error("Could not connect to database!")
-            conn.close()
-            return None, None
+    def insert_actor1(self, row, conn, cur) -> None:
+        parameter_list = ['%s']*11
+        insert_string = f"INSERT INTO actor1 VALUES ({','.join(parameter_list)})"
+        row_list = row[self.gdelt_actor1].values.tolist()
+        cur.execute(insert_string, row_list)
+
+    def insert_wrapper(self, file_path):
+        num_rows = bufcount(file_path)
+        conn, cur = self.connect_database(autocommit=True)
+        for row in tqdm(self.read_csv(file_path, headers=self.gdelt_headers, limit=None), desc="Inserting rows into table ...", total=num_rows):
+            self.insert_data_management_fields(row, conn, cur)
+
+        cur.close()
+        conn.close()
 
 
 if __name__ == "__main__":
-    integrator = GdeltIntegrator()
+    load_dotenv()
+
     file = "raw_data/20191027.export.CSV"
-    integrator.wrapper_read(file)
-    integrator.connect_database()
+    integrator = GdeltIntegrator()
+    # conn, cur = integrator.connect_database()
+    # conn.close()
+    integrator.execute_script(integrator.table_script)
+    integrator.insert_wrapper(file)
