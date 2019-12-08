@@ -2,12 +2,11 @@
 
 import os
 import logging
-from tqdm import tqdm
 from dotenv import load_dotenv
 import pandas as pd
 from psycopg2.errors import UniqueViolation
-
 from utils import *
+
 from DataIntegrator import DataIntegrator
 
 from typing import List, Generator, Tuple
@@ -21,7 +20,9 @@ class GdeltIntegrator(DataIntegrator):
     """
 
     def __init__(self):
+        super().__init__()
         self.table_script = "./schema/prepare_database.psql"
+        self.data = "./raw_data/20191027.export.CSV"
 
         self.table_names = ["data_management_fields", "event_geo", "actor", "actor1", "actor2",
                             "country", "income", "tourist", "influence_income", "event_action", "eventid_and_date"]
@@ -103,131 +104,10 @@ class GdeltIntegrator(DataIntegrator):
             }
         }
 
-    def insert_data(self, conn, cur, row: pd.DataFrame, table_name: str) -> None:
-        """
-        Inserts the row into the database specified by conn, cur. The {table_name} specified the table to be inserted into.
-        """
-        #print(f"Inserting in to table: {table_name}")
-
-        try:
-            columns = self.tables[table_name]["headers"]
-        except KeyError as e:
-            logging.error(
-                f"You forgot to specify the 'headers' on table {table_name}.")
-            raise e
-
-        # Check if the element is a nested list and extract it.
-        if isinstance(columns[0], list):
-            for more_columns in columns:
-                # Generate enough parameters for query string.
-                parameter_string = ','.join(['%s']*len(more_columns))
-
-                # Extract relevant columns from dataframe and cast it to a list.
-                row_list = row[more_columns].values.tolist()
-
-                # Do not perform insert if the first value is empty (which is always the primary key).
-                if not row_list[0]:
-                    continue
-
-                # Cast empty values to None for DB adapter to work.
-                row_list = [None if not x else x for x in row_list]
-
-                try:
-                    attribute_string = ','.join(
-                        self.tables[table_name]["attributes"])
-                    unique_string = ','.join(
-                        self.tables[table_name]["uniques"])
-                except KeyError as e:
-                    logging.error(
-                        f"Your forgot to specify either the 'attributes' or the 'uniques' ont the table {table_name}")
-                    raise e
-
-                # Catch uniqueness constraint with "UPSERT" method
-                if not unique_string:
-                    insert_string = f"INSERT INTO {table_name} ({attribute_string}) VALUES ({parameter_string})"
-                else:
-                    insert_string = f"INSERT INTO {table_name} ({attribute_string}) VALUES ({parameter_string}) ON CONFLICT ({unique_string}) DO NOTHING"
-
-                try:
-                    cur.execute(insert_string, row_list)
-                except UniqueViolation as e:
-                    print(
-                        f"Something went wrong during inserting the following data: {row_list}")
-        else:
-            # Generate enough parameters for query string.
-            parameter_string = ','.join(['%s']*len(columns))
-
-            # Extract relevant columns from dataframe and cast it to a list.
-            row_list = row[columns].values.tolist()
-
-            # Do not perform insert if the first value is empty (which is always the primary key).
-            if not row_list[0]:
-                return
-
-            # Cast empty values to None for DB adapter to work.
-            row_list = [None if not x else x for x in row_list]
-
-            try:
-                attribute_string = ','.join(
-                    self.tables[table_name]["attributes"])
-                unique_string = ','.join(
-                    self.tables[table_name]["uniques"])
-            except KeyError as e:
-                logging.error(
-                    f"Your forgot to specify either the 'attributes' or the 'uniques' ont the table {table_name}")
-                raise e
-
-            # Catch uniqueness constraint with "UPSERT" method
-            if not unique_string:
-                insert_string = f"INSERT INTO {table_name} ({attribute_string}) VALUES ({parameter_string})"
-            else:
-                insert_string = f"INSERT INTO {table_name} ({attribute_string}) VALUES ({parameter_string}) ON CONFLICT ({unique_string}) DO NOTHING"
-
-            try:
-                cur.execute(insert_string, row_list)
-            except UniqueViolation as e:
-                logging.error(
-                    f"Something went wrong during inserting the following data: {row_list}")
-
-            # def insert_data_management_fields(self, row, conn, cur) -> None:
-            #     parameter_list = ['%s']*len(self.gdelt_data_management_fields)
-            #     insert_string = f"INSERT INTO data_management_fields (dateadded, sourceurl) VALUES ({','.join(parameter_list)}) ON CONFLICT (sourceurl) DO NOTHING"
-            #     row_list = row[self.gdelt_data_management_fields].values.tolist()
-
-            #     try:
-            #         cur.execute(insert_string, row_list)
-            #     except UniqueViolation as e:
-            #         print("Duplicate URL!!!")
-
-            # def insert_action_geo(self, row, conn, cur) -> None:
-            #     parameter_list = ['%s']*11
-            #     insert_string = f"INSERT INTO actor1 VALUES ({','.join(parameter_list)})"
-            #     row_list = row[self.gdelt_actor1].values.tolist()
-            #     cur.execute(insert_string, row_list)
-
-            # def insert_actor1(self, row, conn, cur) -> None:
-            #     parameter_list = ['%s']*11
-            #     insert_string = f"INSERT INTO actor1 VALUES ({','.join(parameter_list)})"
-            #     row_list = row[self.gdelt_actor1].values.tolist()
-            #     cur.execute(insert_string, row_list)
-
-    def insert_wrapper(self, file_path, table_names: List[str] = None) -> None:
-        table_names = table_names if table_names else self.table_names
-
-        num_rows = bufcount(file_path)
-        conn, cur = self.connect_database(autocommit=True)
-        for row in tqdm(self.read_csv(file_path, headers=self.headers, limit=None), desc="Inserting rows into table ...", total=num_rows, mininterval=5.0, miniters=1000):
-            for table_name in table_names:
-                self.insert_data(conn, cur, row, table_name)
-
-        cur.close()
-        conn.close()
-
 
 if __name__ == "__main__":
     load_dotenv()
 
-    file = "raw_data/20191027.export.CSV"
     integrator = GdeltIntegrator()
     # compare_stuff(integrator) # Make sure 'attributes' and 'headers' have the same length.
 
@@ -236,4 +116,5 @@ if __name__ == "__main__":
     table_names = ["data_management_fields", "event_geo", "actor1", "actor2",
                    "event_action", "eventid_and_date"]  # Smaller table list to fill.
     # Actually insert the data.
-    integrator.insert_wrapper(file, table_names=table_names)
+    integrator.insert_wrapper(
+        integrator.data, headers=integrator.headers, seperator="\t", table_names=table_names)

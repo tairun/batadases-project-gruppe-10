@@ -4,7 +4,7 @@
 from functools import wraps
 from time import time
 
-from GdeltIntegrator import GdeltIntegrator
+#from GdeltIntegrator import GdeltIntegrator
 
 
 def bufcount(filename: str) -> int:
@@ -42,7 +42,7 @@ def timer(func):
     return _time_it
 
 
-def compare_stuff(integrator: GdeltIntegrator) -> None:
+def compare_stuff(integrator) -> None:
     for table in integrator.table_names:
 
         try:
