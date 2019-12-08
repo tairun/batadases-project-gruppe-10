@@ -2,38 +2,38 @@ CREATE TABLE IF NOT EXISTS data_management_fields
 (
     ID        SERIAL PRIMARY KEY,
     DATEADDED INTEGER,
-    SOURCEURL VARCHAR(999) UNIQUE
+    SOURCEURL TEXT UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS event_geo
 (
-    ADM1Code    VARCHAR(999) PRIMARY KEY,
-    FeatureID   VARCHAR(999), -- TODO: Documentation says its a signed integer
-    CountryCode VARCHAR(999),
-    Lat         FLOAT DEFAULT 0.0,
-    Long        FLOAT DEFAULT 0.0,
+    ADM1Code    TEXT PRIMARY KEY,
+    FeatureID   TEXT, -- TODO: Documentation says its a signed integer
+    CountryCode TEXT,
+    Lat         FLOAT,
+    Long        FLOAT,
     Type        INTEGER,
-    FullName    VARCHAR(999)
+    FullName    TEXT
 );
 
 CREATE TABLE IF NOT EXISTS actor
 (
-    Code           VARCHAR(999) PRIMARY KEY,
-    Name           VARCHAR(999),
-    KnownGroupCode VARCHAR(999),
-    Religion1Code  VARCHAR(999),
-    Religion2Code  VARCHAR(999),
-    CountryCode    VARCHAR(999),
-    Type1Code      VARCHAR(999),
-    Type2Code      VARCHAR(999),
-    Type3Code      VARCHAR(999),
-    EthnicCode     VARCHAR(999)
+    Code           TEXT PRIMARY KEY,
+    Name           TEXT,
+    KnownGroupCode TEXT,
+    Religion1Code  TEXT,
+    Religion2Code  TEXT,
+    CountryCode    TEXT,
+    Type1Code      TEXT,
+    Type2Code      TEXT,
+    Type3Code      TEXT,
+    EthnicCode     TEXT
 );
 
 CREATE TABLE IF NOT EXISTS actor1
 (
-    Code     VARCHAR(999) PRIMARY KEY,
-    ADM1Code VARCHAR(999),
+    Code     TEXT PRIMARY KEY,
+    ADM1Code TEXT,
     FOREIGN KEY (ADM1Code) REFERENCES event_geo (ADM1Code)
 ) INHERITS (actor);
 
@@ -41,41 +41,45 @@ CREATE TABLE IF NOT EXISTS actor1
 
 CREATE TABLE IF NOT EXISTS actor2
 (
-    Code     VARCHAR(999) PRIMARY KEY,
-    ADM1Code VARCHAR(999),
+    Code     TEXT PRIMARY KEY,
+    ADM1Code TEXT,
     FOREIGN KEY (ADM1Code) REFERENCES event_geo (ADM1Code)
 ) INHERITS (actor);
 
 CREATE TABLE IF NOT EXISTS country
 (
     CID      SERIAL PRIMARY KEY,
-    Geo_Name VARCHAR(99) NOT NULL
+    Geo_Name VARCHAR(99) NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS income
 (
     IID      SERIAL PRIMARY KEY,
-    CID      INTEGER NOT NULL, -- Foreign key for a SERIAL field
+    CID      TEXT,   
+    --CID      INTEGER NOT NULL, -- Foreign key for a SERIAL field.
     Value    INTEGER,
-    Unit     VARCHAR(99),
-    AgeGroup VARCHAR(999),
-    Type     VARCHAR(999),
+    Unit     TEXT,
+    Citizens TEXT,
+    AgeGroup TEXT,
+    Type     TEXT,
     Year     INTEGER,
-    Sex      VARCHAR(999),
+    Sex      TEXT
 
-    FOREIGN KEY (CID) REFERENCES country (CID)
+    --FOREIGN KEY (CID) REFERENCES country (CID) -- TODO: Recreate foreign key
 );
 
 CREATE TABLE IF NOT EXISTS tourist
 (
     TID           SERIAL PRIMARY KEY,
-    CID           INTEGER NOT NULL, -- Foreign key for a SERIAL field
-    Value         INTEGER,
-    Time          INTEGER,
-    Accommodation VARCHAR(999),
-    Unit          VARCHAR(999),
+    CID           TEXT,
+    --CID           INTEGER NOT NULL, -- Foreign key for a SERIAL field
+    Value         FLOAT,
+    Time          TEXT, -- TODO: Convert from TEXT?!
+    RESID         TEXT,          
+    Accommodation TEXT,
+    Unit          TEXT
 
-    FOREIGN KEY (CID) REFERENCES country (CID)
+    --FOREIGN KEY (CID) REFERENCES country (CID) -- TODO: Recreate foreign key
 );
 
 CREATE TABLE IF NOT EXISTS influence_income
@@ -89,13 +93,13 @@ CREATE TABLE IF NOT EXISTS influence_income
 
 CREATE TABLE IF NOT EXISTS event_action
 (
-    EventCode      VARCHAR(999) PRIMARY KEY,
-    Actor1Code     VARCHAR(999),
-    Actor2Code     VARCHAR(999),
-    ADM1Code       VARCHAR(999), --TODO: Which ADM1Code is the right one?
+    EventCode      TEXT PRIMARY KEY,
+    Actor1Code     TEXT,
+    Actor2Code     TEXT,
+    ADM1Code       TEXT, --TODO: Which ADM1Code is the right one?
     TID            INTEGER, -- Will be determined during analysis. Also FK for a SERIAL field
-    EventBaseCode  VARCHAR(999),
-    EventRootCode  VARCHAR(999),
+    EventBaseCode  TEXT,
+    EventRootCode  TEXT,
     IsRootEvent    INTEGER, --TODO: This could be a boolean!
     GoldsteinScale FLOAT,
     QuadClass      INTEGER,
@@ -113,8 +117,8 @@ CREATE TABLE IF NOT EXISTS event_action
 CREATE TABLE IF NOT EXISTS eventid_and_date
 (
     GlobalEventID INTEGER PRIMARY KEY,
-    SOURCEURL     VARCHAR(999),
-    EventCode     VARCHAR(999),
+    SOURCEURL     TEXT,
+    EventCode     TEXT,
     FractionDate  FLOAT,
     Day           INTEGER,
     MonthYear     INTEGER,
