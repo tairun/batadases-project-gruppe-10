@@ -8,10 +8,10 @@ CREATE TABLE IF NOT EXISTS data_management_fields
 CREATE TABLE IF NOT EXISTS event_geo
 (
     ADM1Code    VARCHAR(999) PRIMARY KEY,
-    FeatureID   INTEGER,
+    FeatureID   VARCHAR(999), -- TODO: Documentation says its a signed integer
     CountryCode VARCHAR(999),
-    Lat         FLOAT,
-    Long        FLOAT,
+    Lat         FLOAT DEFAULT 0.0,
+    Long        FLOAT DEFAULT 0.0,
     Type        INTEGER,
     FullName    VARCHAR(999)
 );
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS country
 CREATE TABLE IF NOT EXISTS income
 (
     IID      SERIAL PRIMARY KEY,
-    CID      SERIAL NOT NULL,
+    CID      INTEGER NOT NULL, -- Foreign key for a SERIAL field
     Value    INTEGER,
     Unit     VARCHAR(99),
     AgeGroup VARCHAR(999),
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS income
 CREATE TABLE IF NOT EXISTS tourist
 (
     TID           SERIAL PRIMARY KEY,
-    CID           SERIAL NOT NULL,
+    CID           INTEGER NOT NULL, -- Foreign key for a SERIAL field
     Value         INTEGER,
     Time          INTEGER,
     Accommodation VARCHAR(999),
@@ -80,8 +80,8 @@ CREATE TABLE IF NOT EXISTS tourist
 
 CREATE TABLE IF NOT EXISTS influence_income
 (
-    TID SERIAL,
-    IID SERIAL,
+    TID INTEGER, -- Will be determined during analysis. Also FK for a SERIAL field
+    IID INTEGER, -- Will be determined during analysis. Also FK for a SERIAL field
 
     FOREIGN KEY (TID) REFERENCES tourist (TID),
     FOREIGN KEY (IID) REFERENCES income (IID)
@@ -92,11 +92,11 @@ CREATE TABLE IF NOT EXISTS event_action
     EventCode      VARCHAR(999) PRIMARY KEY,
     Actor1Code     VARCHAR(999),
     Actor2Code     VARCHAR(999),
-    ADM1Code       VARCHAR(999),
-    TID            SERIAL,
+    ADM1Code       VARCHAR(999), --TODO: Which ADM1Code is the right one?
+    TID            INTEGER, -- Will be determined during analysis. Also FK for a SERIAL field
     EventBaseCode  VARCHAR(999),
     EventRootCode  VARCHAR(999),
-    IsRootEvent    BOOLEAN,
+    IsRootEvent    INTEGER, --TODO: This could be a boolean!
     GoldsteinScale FLOAT,
     QuadClass      INTEGER,
     AvgTone        FLOAT,
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS event_action
 
     FOREIGN KEY (Actor1Code) REFERENCES actor1 (Code),
     FOREIGN KEY (Actor2Code) REFERENCES actor2 (Code),
-    FOREIGN KEY (ADM1Code) REFERENCES event_geo (ADM1Code),
+    FOREIGN KEY (ADM1Code) REFERENCES event_geo (ADM1Code), --TODO: Is this the right ADM1Code?
     FOREIGN KEY (TID) REFERENCES tourist (TID)
 );
 

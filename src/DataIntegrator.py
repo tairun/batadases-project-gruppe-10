@@ -62,6 +62,7 @@ class DataIntegrator(object):
             return None, None
 
     def execute_script(self, script_path: str) -> None:
+        logging.info(f"Executing script '{script_path}' ...")
         conn, cur = self.connect_database(autocommit=True)
 
         with open(script_path, "r") as script_handle:
@@ -69,3 +70,7 @@ class DataIntegrator(object):
 
         cur.close()
         conn.close()
+
+
+if __name__ == "__main__":
+    print(f"No module code.")

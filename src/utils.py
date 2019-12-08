@@ -4,6 +4,8 @@
 from functools import wraps
 from time import time
 
+from GdeltIntegrator import GdeltIntegrator
+
 
 def bufcount(filename: str) -> int:
     """
@@ -26,7 +28,9 @@ def bufcount(filename: str) -> int:
 
 
 def timer(func):
-    """A simple decorator that times the duration of a function's execution."""
+    """
+    A simple decorator that times the duration of a function's execution.
+    """
     @wraps(func)
     def _time_it(*args, **kwargs):
         start = int(round(time() * 1000))
@@ -36,3 +40,30 @@ def timer(func):
             end_ = int(round(time() * 1000)) - start
             print(f"Total execution time: {end_ if end_ > 0 else 0} ms")
     return _time_it
+
+
+def compare_stuff(integrator: GdeltIntegrator) -> None:
+    for table in integrator.table_names:
+
+        try:
+            headers = integrator.tables[table]["headers"]
+            attributes = integrator.tables[table]["attributes"]
+
+            if isinstance(headers[0], list):
+                for head in headers:
+                    len_header = len(head)
+                    len_attributes = len(attributes)
+                    symbol = "✔️" if len_header == len_attributes else "❌"
+                    print(
+                        f"{symbol} Table {table}: 'headers' {len_header} | attributes {len_attributes}."
+                    )
+            else:
+                len_headers = len(headers)
+                len_attributes = len(attributes)
+                symbol = "✔️" if len_headers == len_attributes else "❌"
+                print(
+                    f"{symbol} Table {table}: 'headers' {len_headers} | attributes {len_attributes}."
+                )
+        except KeyError as e:
+            print(f"❌ Table {table} has no 'headers' or 'attributes'!")
+            continue
