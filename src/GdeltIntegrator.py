@@ -2,14 +2,18 @@
 
 import os
 import logging
-from dotenv import load_dotenv
+
 import pandas as pd
+from itertools import repeat
 from psycopg2.errors import UniqueViolation
-from utils import *
+from concurrent.futures import ThreadPoolExecutor
+import tqdm
 
-from DataIntegrator import DataIntegrator
+from src.utils import *
+from src.GdeltDownloader import GdeltDownloader
+from src.DataIntegrator import DataIntegrator
 
-from typing import List, Generator, Tuple
+from typing import List, Generator, Tuple, Dict
 
 logging.getLogger().disabled = True
 
@@ -19,8 +23,9 @@ class GdeltIntegrator(DataIntegrator):
     Class description.
     """
 
-    def __init__(self):
+    def __init__(self, start_date: Tuple[int, int, int], end_date: Tuple[int, int, int], url: str = None, dl_path: str = None):
         super().__init__()
+        self.downloader = GdeltDownloader(start_date, end_date, url, dl_path)
         self.table_script = "./schema/prepare_database.psql"
         self.data = "./raw_data/20191027.export.CSV"
 
@@ -104,11 +109,25 @@ class GdeltIntegrator(DataIntegrator):
             }
         }
 
+    def download_and_integrate(self, thread_count: int = 1) -> None:
+        _ = input("Press 'Enter' to start download and extraction process ...")
+
+        file_list = self.downloader.get_file_links()
+        executor = ThreadPoolExecutor(max_workers=thread_count)
+        results = tqdm(executor.map(
+            self.gdelt_wrapper, file_list, repeat(self.downloader.dl_path)), desc="Queuing downloads ...")
+
+    def gdelt_wrapper(self, file: Dict, dl_path: str) -> None:
+        csv_file, success = self.downloader.download_file(file, dl_path)
+
 
 if __name__ == "__main__":
+    from dotenv import load_dotenv
     load_dotenv()
 
-    integrator = GdeltIntegrator()
+    start_date = (2015, 1, 1)
+    end_date = (2019, 12, 31)
+    integrator = GdeltIntegrator(start_date, end_date)
     # compare_stuff(integrator) # Make sure 'attributes' and 'headers' have the same length.
 
     _ = input(f"Press 'Enter' to start the integration process ...")

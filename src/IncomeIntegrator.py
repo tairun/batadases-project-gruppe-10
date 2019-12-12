@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from EurostatIntegrator import EurostatIntegrator
+from src.EurostatIntegrator import EurostatIntegrator
 
 
 class IncomeIntegrator(EurostatIntegrator):

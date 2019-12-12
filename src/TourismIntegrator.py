@@ -1,4 +1,4 @@
-from EurostatIntegrator import EurostatIntegrator
+from src.EurostatIntegrator import EurostatIntegrator
 
 
 class TourismIntegrator(EurostatIntegrator):

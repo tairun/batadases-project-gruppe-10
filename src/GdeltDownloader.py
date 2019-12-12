@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from src.timer import timer
+from src.utils import *
 from typing import Dict, List, Tuple, Optional, Union, Iterator
 from tqdm import tqdm
 from bs4 import BeautifulSoup as bs
@@ -20,13 +20,18 @@ import logging
 
 
 class GdeltDownloader(object):
+    """
+    Class description.
+    """
 
-    def __init__(self, url: str, start_date: Tuple[int, int, int], end_date: Tuple[int, int, int]):
+    def __init__(self, start_date: Tuple[int, int, int], end_date: Tuple[int, int, int], url: Optional[str] = "http://data.gdeltproject.org/events/", dl_path: Optional[str] = "./raw_data/"):
+        super().__init__()
         now = datetime.now()
         start_date if start_date else (1970, 1, 1)
         end_date if end_date else (now.year, now.month, now.day)
 
-        self.base_url: str = url
+        self.base_url = url
+        self.dl_path = dl_path
         self.start_date = datetime(*start_date)
         self.end_date = datetime(*end_date)
         self.max_threads = 2 * os.cpu_count() - 1
@@ -53,7 +58,7 @@ class GdeltDownloader(object):
             try:
                 file = link.find('a')['href']
                 date_string: Tuple[int, int, int] = tuple(int(x)
-                                    for x in re.findall(dateRegex, file)[0])
+                                                          for x in re.findall(dateRegex, file)[0])
                 date = datetime(*date_string)
 
                 # Only add file link if the date is withing the range
@@ -70,10 +75,11 @@ class GdeltDownloader(object):
                 logging.info(f"Link '{link}' was empty!", e)
                 continue  # Skip link if one of the properties was not found
 
-        print(f"{len(file_links)} links found in date range '{self.start_date} - {self.end_date}'!")
+        print(
+            f"{len(file_links)} links found in date range '{self.start_date} - {self.end_date}'!")
         return file_links
 
-    #TODO: Change return type to a dict.
+    # TODO: Change return type to a dict.
     def download_file(self, file_obj: Dict, dl_path: str, extract: bool = True, remove: bool = True, retries: int = 5) -> Optional[Tuple[str, bool]]:
         """Downloads and extract a given file. Skips the file if it already exists.
 
@@ -89,8 +95,10 @@ class GdeltDownloader(object):
         Optional[Tuple[str, bool]]
             Return a tuple with information about the download. First item is the local filename, second item is a bool which is set to true if the md5 sum of the file matches. Can be none if the download was skipped.
         """
-        filename = file_obj['file'].split('/')[-1]  # Get filename from file_obj for later use.
-        zip_local_path = os.path.join(dl_path, filename)  # Compose relative file path. This is where the file gets saved.
+        filename = file_obj['file'].split(
+            '/')[-1]  # Get filename from file_obj for later use.
+        # Compose relative file path. This is where the file gets saved.
+        zip_local_path = os.path.join(dl_path, filename)
 
         result = None
 
@@ -111,7 +119,8 @@ class GdeltDownloader(object):
                         self.md5sum(zip_local_path) == file_obj['md5'])
 
             if not is_md5_equal and retries > 0:
-                logging.info(f"MD5 mismtach. Retrying download for file '{filename}'. {retries} attempts left.")
+                logging.info(
+                    f"MD5 mismtach. Retrying download for file '{filename}'. {retries} attempts left.")
                 return self.download_file(file_obj, dl_path, extract, remove, retries=retries-1)
 
             csv_local_path = os.path.join(
@@ -149,7 +158,7 @@ class GdeltDownloader(object):
             Iterator object with download results.
         """
 
-        _ = input("Press any key to start download and extraction process ...")
+        _ = input("Press 'Enter' to start download and extraction process ...")
         executor = ThreadPoolExecutor(max_workers=thread_count)
         results = tqdm(executor.map(
             self.download_file, files, repeat(dl_path)), desc="Queuing downloads ...")

@@ -8,7 +8,7 @@ import pandas as pd
 from getpass import getpass
 from psycopg2.errors import UniqueViolation
 
-from utils import *
+from src.utils import *
 
 from typing import Tuple, Generator, List
 
