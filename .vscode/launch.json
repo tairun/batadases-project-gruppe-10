@@ -14,6 +14,23 @@
                 "PYTHONPATH": "${workspaceRoot}"
             },
             "cwd": "${workspaceRoot}",
+        },
+        {
+            "name": "Python: Modul",
+            "type": "python",
+            "request": "launch",
+            "module": "app",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Aktuelle Datei (External Terminal)",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "console": "externalTerminal"
         }
     ]
 }
