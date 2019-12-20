@@ -6,7 +6,8 @@ import logging
 import psycopg2
 import pandas as pd
 from getpass import getpass
-from psycopg2.errors import UniqueViolation
+from dotenv import load_dotenv
+from psycopg2.errors import UniqueViolation, InFailedSqlTransaction
 
 from src.utils import *
 
@@ -18,11 +19,11 @@ class DataIntegrator(object):
     Base class for data integrator classes. Provides database connection and file reader functionality.
     """
 
-    def __init__(self):
+    def __init__(self, table_names, tables):
         super().__init__()
         self.table_script = "./schema/prepare_database.psql"
-        self.table_names: List[str] = []
-        self.tables: Dict = {}
+        self.table_names = table_names
+        self.tables = tables
 
     def read_csv(self, file_path: str, headers: List[str] = None, limit: int = None, seperator: str = ",") -> Generator:
         """
@@ -40,12 +41,13 @@ class DataIntegrator(object):
                 yield row
 
     def connect_database(self, host: str = "localhost", port: int = 5432, dbname: str = None, user: str = None, passwd: str = None, autocommit: bool = False) -> Tuple:
+        load_dotenv()
         try:
             dbname = dbname if dbname else os.environ["POSTGRES_DB"]
             user = user if user else os.environ["POSTGRES_USER"]
-            passwd = passwd if passwd else os.environ["POSTGRES_PASSOWRD"]
-            print(f"Password: {passwd}")
+            passwd = passwd if passwd else os.environ["POSTGRES_PASSWORD"]
         except KeyError as e:
+            print(e)
             logging.error(
                 "Couldn't load database credentials from environment. Using defaults.")
             dbname = "db-proj-hs19"
@@ -61,7 +63,7 @@ class DataIntegrator(object):
             cur = conn.cursor()
 
             cur.execute("SELECT version()")
-            print(f"Connected to: {cur.fetchone()}")
+            logging.info(f"Connected to: {cur.fetchone()}")
 
             return conn, cur
         except Exception as e:
@@ -81,10 +83,8 @@ class DataIntegrator(object):
 
     def insert_data(self, conn, cur, row: pd.DataFrame, table_name: str) -> None:
         """
-        Inserts the row into the database specified by conn, cur. The {table_name} specified the table to be inserted into.
+        Inserts the row into the database specified by conn, cur. The {table_name} specifies the table to be inserted into.
         """
-        #print(f"Inserting in to table: {table_name}")
-
         try:
             columns = self.tables[table_name]["headers"]
         except KeyError as e:
@@ -128,8 +128,16 @@ class DataIntegrator(object):
                 try:
                     cur.execute(insert_string, row_list)
                 except UniqueViolation as e:
-                    print(
-                        f"Something went wrong during inserting the following data: {row_list}")
+                    logging.error(
+                        f"Something went wrong during inserting into: {table_name}")
+                    logging.info(e)
+                except InFailedSqlTransaction as e:
+                    logging.error(
+                        f"Transaction stopped. Rolling back...: {table_name}")
+                    logging.info(e)
+                    # conn.rollback()
+                    pass
+
         else:
             # Generate enough parameters for query string.
             parameter_string = ','.join(['%s']*len(columns))
@@ -165,20 +173,28 @@ class DataIntegrator(object):
                 cur.execute(insert_string, row_list)
             except UniqueViolation as e:
                 logging.error(
-                    f"Something went wrong during inserting the following data: {row_list}")
+                    f"Something went wrong during inserting data into: {table_name}")
+                logging.info(e)
+            except InFailedSqlTransaction as e:
+                logging.error(
+                    f"Transaction stopped. Rolling back...: {table_name}")
+                logging.info(e)
+                # conn.rollback()
+                pass
 
     def insert_wrapper(self, file_path, headers: List[str], seperator: str = ",", table_names: List[str] = None) -> None:
         table_names = table_names if table_names else self.table_names
 
         num_rows = bufcount(file_path)
-        conn, cur = self.connect_database(autocommit=True)
+        conn, cur = self.connect_database(autocommit=False)
 
-        for row in tqdm(self.read_csv(file_path, seperator=seperator, headers=headers, limit=None), desc="Inserting rows into table ...", total=num_rows, mininterval=5.0, miniters=1000):
+        for row in tqdm(self.read_csv(file_path, seperator=seperator, headers=headers, limit=None), desc=f"Inserting {file_path} ...", total=num_rows, mininterval=5.0, miniters=1000):
 
             for table_name in table_names:
                 self.insert_data(conn, cur, row, table_name)
 
         cur.close()
+        conn.commit()
         conn.close()
 
 

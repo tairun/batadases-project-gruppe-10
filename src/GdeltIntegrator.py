@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 
+
 import os
 import logging
 
 import pandas as pd
 from itertools import repeat
 from psycopg2.errors import UniqueViolation
-from concurrent.futures import ThreadPoolExecutor
-import tqdm
+from concurrent.futures import ThreadPoolExecutor, ALL_COMPLETED, wait
+from multiprocessing import Pool, Queue, Lock
+from tqdm import tqdm
 
 from src.utils import *
 from src.GdeltDownloader import GdeltDownloader
 from src.DataIntegrator import DataIntegrator
 
-from typing import List, Generator, Tuple, Dict
-
-logging.getLogger().disabled = True
+from typing import List, Generator, Tuple, Dict, Optional
 
 
 class GdeltIntegrator(DataIntegrator):
@@ -23,8 +23,7 @@ class GdeltIntegrator(DataIntegrator):
     Class description.
     """
 
-    def __init__(self, start_date: Tuple[int, int, int], end_date: Tuple[int, int, int], url: str = None, dl_path: str = None):
-        super().__init__()
+    def __init__(self, start_date: Tuple[int, int, int], end_date: Tuple[int, int, int], url: str = "http://data.gdeltproject.org/events/", dl_path: str = "./raw_data/gdelt"):
         self.downloader = GdeltDownloader(start_date, end_date, url, dl_path)
         self.table_script = "./schema/prepare_database.psql"
         self.data = "./raw_data/20191027.export.CSV"
@@ -50,7 +49,7 @@ class GdeltIntegrator(DataIntegrator):
             "data_management_fields": {
                 "headers": [self.headers[i] for i in [56, 57]],
                 "attributes": ["DATEADDED", "SOURCEURL"],
-                "uniques": ["SOURCEURL"]
+                "uniques": []  # FIXME ["SOURCEURL"]
             },
             "event_geo": {
                 "headers": [[self.headers[i] for i in
@@ -108,23 +107,42 @@ class GdeltIntegrator(DataIntegrator):
                 "uniques": []
             }
         }
+        super().__init__(self.table_names, self.tables)
 
-    def download_and_integrate(self, thread_count: int = 1) -> None:
+    def download_and_integrate(self, max_workers: int = None, table_names: List[str] = None) -> None:
         _ = input("Press 'Enter' to start download and extraction process ...")
+        max_workers = max_workers if max_workers else self.downloader.max_workers
+        table_names = table_names if table_names else self.table_names
 
         file_list = self.downloader.get_file_links()
-        executor = ThreadPoolExecutor(max_workers=thread_count)
-        results = tqdm(executor.map(
-            self.gdelt_wrapper, file_list, repeat(self.downloader.dl_path)), desc="Queuing downloads ...")
 
-    def gdelt_wrapper(self, file: Dict, dl_path: str) -> None:
-        csv_file, success = self.downloader.download_file(file, dl_path)
+        for file in tqdm(file_list, desc="Working on GDELT files ...", mininterval=5.0):
+            self.gdelt_wrapper(file, self.downloader.dl_path, table_names)
+
+            # TODO: Test multiprocessing.Pool implementation
+            # results = Queue()
+            # with Pool(processes=2) as p:
+            #    p.starmap(self.gdelt_wrapper, [file_list,
+            #                                  repeat(self.downloader.dl_path)])
+            # FIXME: ThreadPoolExecutor does not behave like I want.
+            # executor = ThreadPoolExecutor(max_workers=max_workers)
+            # results = tqdm(executor.map(
+            #    self.gdelt_wrapper, file_list, repeat(self.downloader.dl_path)), desc="Downloading and integrating GDELT ...")
+
+            # return results
+
+    def gdelt_wrapper(self, file: Dict, dl_path: str, table_names: List[str]) -> Optional[Tuple]:
+        result = self.downloader.download_file(file, dl_path)
+        if result:
+            csv_file, success = result
+            self.insert_wrapper(csv_file, self.headers, seperator="\t",
+                                table_names=table_names)
+            os.remove(csv_file)
+
+        return result
 
 
 if __name__ == "__main__":
-    from dotenv import load_dotenv
-    load_dotenv()
-
     start_date = (2015, 1, 1)
     end_date = (2019, 12, 31)
     integrator = GdeltIntegrator(start_date, end_date)

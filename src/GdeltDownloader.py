@@ -24,7 +24,7 @@ class GdeltDownloader(object):
     Class description.
     """
 
-    def __init__(self, start_date: Tuple[int, int, int], end_date: Tuple[int, int, int], url: Optional[str] = "http://data.gdeltproject.org/events/", dl_path: Optional[str] = "./raw_data/"):
+    def __init__(self, start_date: Tuple[int, int, int], end_date: Tuple[int, int, int], url: str = "http://data.gdeltproject.org/events/", dl_path: str = "./raw_data/gedlt"):
         super().__init__()
         now = datetime.now()
         start_date if start_date else (1970, 1, 1)
@@ -34,7 +34,7 @@ class GdeltDownloader(object):
         self.dl_path = dl_path
         self.start_date = datetime(*start_date)
         self.end_date = datetime(*end_date)
-        self.max_threads = 2 * os.cpu_count() - 1
+        self.max_workers = int(os.cpu_count()) * 2
         self.dl_dir = TemporaryDirectory(prefix="batadase_", dir=".")
 
     def get_file_links(self) -> List[Dict]:
@@ -110,8 +110,10 @@ class GdeltDownloader(object):
             logging.debug(f"File '{zip_local_path}' does not exist.")
 
         # Skip download if .zip or .csv file already exists.
+        is_md5_equal = False
         if not os.path.isfile(zip_local_path) and not os.path.isfile(os.path.splitext(zip_local_path)[0]):
             uri = os.path.join(self.base_url, filename)
+
             with requests.get(uri, stream=True) as r:
                 with open(zip_local_path, "wb") as f:
                     shutil.copyfileobj(r.raw, f)
@@ -139,7 +141,6 @@ class GdeltDownloader(object):
 
         return result
 
-    @timer
     def download_links(self, files: List[Dict], dl_path: str, thread_count: int = 1) -> Iterator[Optional[Tuple[str, bool]]]:
         """Takes a dict and dispatches the download links to different threads to download.
 

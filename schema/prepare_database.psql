@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS data_management_fields
 (
     ID        SERIAL PRIMARY KEY,
     DATEADDED INTEGER,
-    SOURCEURL TEXT UNIQUE
+    SOURCEURL TEXT
 );
 
 CREATE TABLE IF NOT EXISTS event_geo
@@ -108,10 +108,10 @@ CREATE TABLE IF NOT EXISTS event_action
     NumSources     INTEGER,
     NumArticles    INTEGER,
 
-    FOREIGN KEY (Actor1Code) REFERENCES actor1 (Code),
-    FOREIGN KEY (Actor2Code) REFERENCES actor2 (Code),
-    FOREIGN KEY (ADM1Code) REFERENCES event_geo (ADM1Code), --TODO: Is this the right ADM1Code?
-    FOREIGN KEY (TID) REFERENCES tourist (TID)
+    FOREIGN KEY (Actor1Code) REFERENCES actor1 (Code) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (Actor2Code) REFERENCES actor2 (Code) DEFERRABLE INITIALLY DEFERRED,
+    FOREIGN KEY (ADM1Code) REFERENCES event_geo (ADM1Code) DEFERRABLE INITIALLY DEFERRED, --TODO: Is this the right ADM1Code?
+    FOREIGN KEY (TID) REFERENCES tourist (TID) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS eventid_and_date
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS eventid_and_date
     MonthYear     INTEGER,
     Year          INTEGER,
 
-    FOREIGN KEY (SOURCEURL) REFERENCES data_management_fields (SOURCEURL),
-    FOREIGN KEY (EventCode) REFERENCES event_action (EventCode)
+    --FOREIGN KEY (SOURCEURL) REFERENCES data_management_fields (SOURCEURL), -- If SOURCEURL has no unique constraint, it cannot be a FOREIGNKEY
+    FOREIGN KEY (EventCode) REFERENCES event_action (EventCode) DEFERRABLE INITIALLY DEFERRED
 );
 

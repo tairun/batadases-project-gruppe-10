@@ -2,7 +2,7 @@
 
 import logging
 from argparse import ArgumentParser
-from concurrent.futures import as_completed
+from concurrent.futures import as_completed, ALL_COMPLETED, wait
 from dotenv import load_dotenv
 
 from src.GdeltDownloader import GdeltDownloader
@@ -10,8 +10,8 @@ from src.GdeltIntegrator import GdeltIntegrator
 from src.IncomeIntegrator import IncomeIntegrator
 from src.TourismIntegrator import TourismIntegrator
 
-logging.basicConfig(level=logging.WARNING)
-load_dotenv()
+logging.basicConfig(level=logging.ERROR)
+logging.getLogger().disabled = True
 
 
 def main():
@@ -24,23 +24,20 @@ def main():
 
     gdelt_raw_data = "./raw_data/gdelt"  # Specify the download directory
     # Create the downloader object
-    gdelt = GdeltDownloader(base_url, start_date, end_date)
     # Parse the download page and extract all the links
-    link_list = gdelt.get_file_links()
     # Download the individual files and extract the content from the zip archives
-    results = gdelt.download_links(
-        link_list, gdelt_raw_data, gdelt.max_threads)
-    # TODO: Apply as_completed() to results list.
 
     _ = input(f"Press 'Enter' to start the integration process ...")
-    integrator1 = GdeltIntegrator()
+    integrator1 = GdeltIntegrator(start_date, end_date)
     table_names_1 = ["data_management_fields", "event_geo", "actor1", "actor2",
                      "event_action", "eventid_and_date"]  # Smaller table list to fill.
     # Actually insert the data.
     integrator1.execute_script(integrator1.table_script)  # Create the tables.
 
-    integrator1.insert_wrapper(
-        integrator1.data, headers=integrator1.headers, seperator="\t", table_names=table_names_1)
+    # integrator1.insert_wrapper(
+    #    integrator1.data, headers=integrator1.headers, seperator="\t", table_names=table_names_1)
+    results = integrator1.download_and_integrate(table_names=table_names_1)
+    wait(results, return_when=ALL_COMPLETED)
 
     integrator2 = IncomeIntegrator()
     table_names_2 = ["income"]  # Smaller table list to fill.
