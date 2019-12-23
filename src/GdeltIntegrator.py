@@ -117,6 +117,8 @@ class GdeltIntegrator(DataIntegrator):
         file_list = self.downloader.get_file_links()
 
         for file in tqdm(file_list, desc="Working on GDELT files ...", mininterval=5.0):
+            print(file)
+            logging.info(file)
             self.gdelt_wrapper(file, self.downloader.dl_path, table_names)
 
             # TODO: Test multiprocessing.Pool implementation
@@ -132,7 +134,6 @@ class GdeltIntegrator(DataIntegrator):
             # return results
 
     def gdelt_wrapper(self, file: Dict, dl_path: str, table_names: List[str]) -> Optional[Tuple]:
-        print("Current file is:", file)
         result = self.downloader.download_file(file, dl_path)
         if result:
             csv_file, success = result

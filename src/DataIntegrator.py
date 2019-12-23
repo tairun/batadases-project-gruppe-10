@@ -14,6 +14,7 @@ from psycopg2.errors import UniqueViolation, InFailedSqlTransaction
 from src.utils import *
 
 from typing import Tuple, Generator, List
+logging.basicConfig(filename='./raw_data/gdelt.log', filemode='w', level=logging.ERROR)
 
 
 class DataIntegrator(object):
@@ -218,8 +219,12 @@ class DataIntegrator(object):
                 new_df.to_csv(s_buf, header=False, index=False,
                               sep="\t", quoting=csv.QUOTE_MINIMAL)
                 s_buf.seek(0)  # Reset read head to start of buffer
-                cur.copy_from(s_buf, table_name, sep="\t", null="",
+                try:
+                    cur.copy_from(s_buf, table_name, sep="\t", null="",
                               columns=self.tables[table_name]["attributes"])
+                except Error as e:
+                    logging.error(e)
+                    return
 
         # Columns isn't a nested list, just use it.
         else:
@@ -241,8 +246,12 @@ class DataIntegrator(object):
             new_df.to_csv(s_buf, header=False, index=False,
                           sep="\t", quoting=csv.QUOTE_MINIMAL)
             s_buf.seek(0)  # Reset read head to start of buffer
-            cur.copy_from(s_buf, table_name, sep="\t", null="",
+            try:
+                cur.copy_from(s_buf, table_name, sep="\t", null="",
                           columns=self.tables[table_name]["attributes"])
+            except Erorr as e:
+                logging.error(e)
+                return
 
     def insert_wrapper(self, file_path, headers: List[str], seperator: str = ",", table_names: List[str] = None) -> None:
         table_names = table_names if table_names else self.table_names
@@ -251,7 +260,6 @@ class DataIntegrator(object):
         conn, cur = self.connect_database(autocommit=False)
 
         for row in tqdm(self.read_csv(file_path, seperator=seperator, headers=headers, limit=None), desc=f"Inserting {file_path} ...", total=num_rows, mininterval=5.0, miniters=1000):
-
             for table_name in table_names:
                 self.insert_data(conn, cur, row, table_name)
 
@@ -269,7 +277,7 @@ class DataIntegrator(object):
                            headers=headers, limit=None)
 
         for table_name in table_names:
-            print("The current table is:", table_name)
+            logging.info("The current table is:", table_name)
             self.insert_data2(conn, cur, df, table_name)
 
         cur.close()
