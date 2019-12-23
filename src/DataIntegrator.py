@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import io
 import os
+import csv
 from tqdm import tqdm
 import logging
 import psycopg2
@@ -25,7 +27,7 @@ class DataIntegrator(object):
         self.table_names = table_names
         self.tables = tables
 
-    def read_csv(self, file_path: str, headers: List[str] = None, limit: int = None, seperator: str = ",") -> Generator:
+    def read_csv(self, file_path: str, headers: List[str] = None, limit: int = None, seperator: str = ",") -> pd.DataFrame:
         """
         Generator that yields lines of a file.
         """
@@ -37,8 +39,7 @@ class DataIntegrator(object):
                 data = pd.read_csv(
                     f, sep=seperator, names=headers, encoding="utf8", na_filter=False, na_values=":", thousands=" ")
 
-            for index, row in data.iterrows():
-                yield row
+            return data
 
     def connect_database(self, host: str = "localhost", port: int = 5432, dbname: str = None, user: str = None, passwd: str = None, autocommit: bool = False) -> Tuple:
         load_dotenv()
@@ -107,7 +108,7 @@ class DataIntegrator(object):
 
                 # Cast empty values to None for DB adapter to work.
                 row_list = [None if not x else x for x in row_list]
-                #print(f"--- {row_list}")
+                # print(f"--- {row_list}")
 
                 try:
                     attribute_string = ','.join(
@@ -151,7 +152,7 @@ class DataIntegrator(object):
 
             # Cast empty values to None for DB adapter to work.
             row_list = [None if not x else x for x in row_list]
-            #print(f"--- {row_list}")
+            # print(f"--- {row_list}")
 
             try:
                 attribute_string = ','.join(
@@ -182,6 +183,59 @@ class DataIntegrator(object):
                 # conn.rollback()
                 pass
 
+    def insert_data2(self, conn, cur, df: pd.DataFrame, table_name: str) -> None:
+        """
+        Inserts the row into the database specified by conn, cur. The {table_name} specifies the table to be inserted into.
+        """
+        try:
+            columns = self.tables[table_name]["headers"]
+        except KeyError as e:
+            logging.error(
+                f"You forgot to specify the 'headers' on table {table_name}.")
+            raise e
+
+        # Check if the element is a nested list and extract it.
+        if isinstance(columns[0], list):
+            for more_columns in columns:
+
+                new_df = df[more_columns]
+
+                if self.tables[table_name]["uniques"]:
+                    uniq = self.tables[table_name]["uniques"][0]
+                    print(uniq)
+
+                    new_df = df[df[self.tables[table_name]
+                                   ["uniques"][0]].notnull()]
+                    print(new_df)
+
+                s_buf = io.StringIO()  # Create string buffer
+                # Export data to csv
+                new_df.to_csv(s_buf, header=False, index=False,
+                              sep="\t", quoting=csv.QUOTE_MINIMAL)
+                s_buf.seek(0)  # Reset read head to start of buffer
+                cur.copy_from(s_buf, table_name, sep="\t", null="",
+                              columns=self.tables[table_name]["attributes"])
+
+        # Columns isn't a nested list, just use it.
+        else:
+            new_df = df[columns]
+
+            if self.tables[table_name]["uniques"]:
+                uniq = self.tables[table_name]["uniques"][0]
+                print(uniq)
+
+                new_df = df[df[self.tables[table_name]
+                               ["uniques"][0]].notnull()]
+                print(new_df)
+
+            s_buf = io.StringIO()  # Create string buffer
+            # Export data to csv
+            new_df.to_csv(s_buf, header=False, index=False,
+                          sep="\t", quoting=csv.QUOTE_MINIMAL)
+            s_buf.seek(0)  # Reset read head to start of buffer
+            cur.copy_from(s_buf, table_name, sep="\t", null="",
+                          columns=self.tables[table_name]["attributes"])
+
     def insert_wrapper(self, file_path, headers: List[str], seperator: str = ",", table_names: List[str] = None) -> None:
         table_names = table_names if table_names else self.table_names
 
@@ -192,6 +246,22 @@ class DataIntegrator(object):
 
             for table_name in table_names:
                 self.insert_data(conn, cur, row, table_name)
+
+        cur.close()
+        conn.commit()
+        conn.close()
+
+    def insert_wrapper2(self, file_path, headers: List[str], seperator: str = ",", table_names: List[str] = None) -> None:
+        table_names = table_names if table_names else self.table_names
+
+        num_rows = bufcount(file_path)
+        conn, cur = self.connect_database(autocommit=False)
+
+        df = self.read_csv(file_path, seperator=seperator,
+                           headers=headers, limit=None)
+
+        for table_name in table_names:
+            self.insert_data2(conn, cur, df, table_name)
 
         cur.close()
         conn.commit()

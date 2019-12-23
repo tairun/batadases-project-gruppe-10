@@ -37,7 +37,6 @@ def main():
     # integrator1.insert_wrapper(
     #    integrator1.data, headers=integrator1.headers, seperator="\t", table_names=table_names_1)
     results = integrator1.download_and_integrate(table_names=table_names_1)
-    wait(results, return_when=ALL_COMPLETED)
 
     integrator2 = IncomeIntegrator()
     table_names_2 = ["income"]  # Smaller table list to fill.

@@ -57,23 +57,23 @@ class GdeltIntegrator(DataIntegrator):
                                                              [45, 48, 44, 46, 47, 42, 43]], [self.headers[i] for i in
                                                                                              [52, 55, 51, 53, 54, 49, 50]]],
                 "attributes": ["ADM1Code", "FeatureID", "CountryCode", "Lat", "Long", "Type", "FullName"],
-                "uniques": ["ADM1Code"]
+                "uniques": ["ActionGeo_ADM1Code"]
             },
             "actor": {
                 "attributes": ["Code", "Name", "KnownGroupCode", "Religion1Code", "Religion2Code", "CountryCode", "Type1Code", "Type2Code", "Type3Code", "EthnicCode"],
-                "uniques": []
+                "uniques": ["Code"]
             },
             "actor1":  {
                 "headers": [self.headers[i]
                             for i in [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 38]],
                 "attributes": ["Code", "Name", "KnownGroupCode", "Religion1Code", "Religion2Code", "CountryCode", "Type1Code", "Type2Code", "Type3Code", "EthnicCode", "ADM1Code"],
-                "uniques": []
+                "uniques": ["Code"]
             },
             "actor2": {
                 "headers": [self.headers[i]
                             for i in [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 45]],
                 "attributes": ["Code", "Name", "KnownGroupCode", "Religion1Code", "Religion2Code", "CountryCode", "Type1Code", "Type2Code", "Type3Code", "EthnicCode", "ADM1Code"],
-                "uniques": []
+                "uniques": ["Code"]
             },
             "country": {
                 "headers": [],
@@ -99,12 +99,12 @@ class GdeltIntegrator(DataIntegrator):
                 "headers": [self.headers[i] for i in [
                     26, 5, 15, 52, 27, 28, 25, 30, 29, 34, 31, 32, 33]],
                 "attributes": ["EventCode", "Actor1Code", "Actor2Code", "ADM1Code", "EventBaseCode", "EventRootCode", "IsRootEvent", "GoldsteinScale", "QuadClass", "AvgTone", "NumMentions", "NumSources", "NumArticles"],
-                "uniques": []
+                "uniques": ["EventCode"]
             },
             "eventid_and_date": {
                 "headers": [self.headers[i] for i in [0, 57, 26, 4, 56, 2, 3]],
                 "attributes": ["GlobalEventID", "SOURCEURL", "EventCode", "FractionDate", "Day", "MonthYear", "Year"],
-                "uniques": []
+                "uniques": ["GlobalEventID"]
             }
         }
         super().__init__(self.table_names, self.tables)
@@ -135,8 +135,8 @@ class GdeltIntegrator(DataIntegrator):
         result = self.downloader.download_file(file, dl_path)
         if result:
             csv_file, success = result
-            self.insert_wrapper(csv_file, self.headers, seperator="\t",
-                                table_names=table_names)
+            self.insert_wrapper2(csv_file, self.headers, seperator="\t",
+                                 table_names=table_names)
             os.remove(csv_file)
 
         return result
