@@ -57,7 +57,7 @@ class GdeltIntegrator(DataIntegrator):
                                                              [45, 48, 44, 46, 47, 42, 43]], [self.headers[i] for i in
                                                                                              [52, 55, 51, 53, 54, 49, 50]]],
                 "attributes": ["ADM1Code", "FeatureID", "CountryCode", "Lat", "Long", "Type", "FullName"],
-                "uniques": ["ActionGeo_ADM1Code"]
+                "uniques": ["Actor1Geo_ADM1Code", "Actor2Geo_ADM1Code", "ActionGeo_ADM1Code"]
             },
             "actor": {
                 "attributes": ["Code", "Name", "KnownGroupCode", "Religion1Code", "Religion2Code", "CountryCode", "Type1Code", "Type2Code", "Type3Code", "EthnicCode"],

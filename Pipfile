@@ -17,5 +17,5 @@ lxml = "*"
 psycopg2-binary = "*"
 python-dotenv = "*"
 
-[requires]
-python_version = "3.7"
+#[requires]
+#python_version = "3.7"

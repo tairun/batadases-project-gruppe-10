@@ -196,17 +196,18 @@ class DataIntegrator(object):
 
         # Check if the element is a nested list and extract it.
         if isinstance(columns[0], list):
-            for more_columns in columns:
-
+            for i, more_columns in enumerate(columns):
+                #print("These are the headers:", more_columns)
                 new_df = df[more_columns]
 
                 if self.tables[table_name]["uniques"]:
-                    uniq = self.tables[table_name]["uniques"][0]
-                    print(uniq)
+                    uniq = self.tables[table_name]["uniques"][i]
+                    print("The unique value is:", uniq)
 
-                    new_df = df[df[self.tables[table_name]
-                                   ["uniques"][0]].notnull()]
-                    print(new_df)
+                    new_df = new_df[new_df[self.tables[table_name]
+                                   ["uniques"][i]].notnull()]
+                    print("This is the new data:\n", new_df[self.tables[table_name]
+                                   ["uniques"][i]])
 
                 s_buf = io.StringIO()  # Create string buffer
                 # Export data to csv
@@ -224,9 +225,10 @@ class DataIntegrator(object):
                 uniq = self.tables[table_name]["uniques"][0]
                 print(uniq)
 
-                new_df = df[df[self.tables[table_name]
+                new_df = new_df[new_df[self.tables[table_name]
                                ["uniques"][0]].notnull()]
-                print(new_df)
+                print(new_df[self.tables[table_name]
+                               ["uniques"][0]])
 
             s_buf = io.StringIO()  # Create string buffer
             # Export data to csv
