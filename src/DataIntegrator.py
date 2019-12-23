@@ -204,8 +204,12 @@ class DataIntegrator(object):
                     uniq = self.tables[table_name]["uniques"][i]
                     print("The unique value is:", uniq)
 
+                    #new_df = new_df[new_df[self.tables[table_name]
+                    #               ["uniques"][i]].notnull()]
                     new_df = new_df[new_df[self.tables[table_name]
-                                   ["uniques"][i]].notnull()]
+                                    ["uniques"][i]] != ""]
+                    new_df = new_df.drop_duplicates(subset=[self.tables[table_name]
+                                    ["uniques"][i]])
                     print("This is the new data:\n", new_df[self.tables[table_name]
                                    ["uniques"][i]])
 
@@ -226,7 +230,9 @@ class DataIntegrator(object):
                 print(uniq)
 
                 new_df = new_df[new_df[self.tables[table_name]
-                               ["uniques"][0]].notnull()]
+                               ["uniques"][0]] != ""]
+                new_df = new_df.drop_duplicates(subset=[self.tables[table_name]
+                               ["uniques"][0]])
                 print(new_df[self.tables[table_name]
                                ["uniques"][0]])
 
