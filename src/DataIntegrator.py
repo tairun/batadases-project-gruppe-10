@@ -202,7 +202,7 @@ class DataIntegrator(object):
 
                 if self.tables[table_name]["uniques"]:
                     uniq = self.tables[table_name]["uniques"][i]
-                    print("The unique value is:", uniq)
+                    #print("The unique value is:", uniq)
 
                     #new_df = new_df[new_df[self.tables[table_name]
                     #               ["uniques"][i]].notnull()]
@@ -210,8 +210,8 @@ class DataIntegrator(object):
                                     ["uniques"][i]] != ""]
                     new_df = new_df.drop_duplicates(subset=[self.tables[table_name]
                                     ["uniques"][i]])
-                    print("This is the new data:\n", new_df[self.tables[table_name]
-                                   ["uniques"][i]])
+                    #print("This is the new data:\n", new_df[self.tables[table_name]
+                    #               ["uniques"][i]])
 
                 s_buf = io.StringIO()  # Create string buffer
                 # Export data to csv
@@ -227,14 +227,14 @@ class DataIntegrator(object):
 
             if self.tables[table_name]["uniques"]:
                 uniq = self.tables[table_name]["uniques"][0]
-                print(uniq)
+                #print(uniq)
 
                 new_df = new_df[new_df[self.tables[table_name]
                                ["uniques"][0]] != ""]
                 new_df = new_df.drop_duplicates(subset=[self.tables[table_name]
                                ["uniques"][0]])
-                print(new_df[self.tables[table_name]
-                               ["uniques"][0]])
+                #print(new_df[self.tables[table_name]
+                #               ["uniques"][0]])
 
             s_buf = io.StringIO()  # Create string buffer
             # Export data to csv
@@ -269,6 +269,7 @@ class DataIntegrator(object):
                            headers=headers, limit=None)
 
         for table_name in table_names:
+            print("The current table is:", table_name)
             self.insert_data2(conn, cur, df, table_name)
 
         cur.close()

@@ -67,13 +67,13 @@ class GdeltIntegrator(DataIntegrator):
                 "headers": [self.headers[i]
                             for i in [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 38]],
                 "attributes": ["Code", "Name", "KnownGroupCode", "Religion1Code", "Religion2Code", "CountryCode", "Type1Code", "Type2Code", "Type3Code", "EthnicCode", "ADM1Code"],
-                "uniques": ["Code"]
+                "uniques": ["Actor1Code"]
             },
             "actor2": {
                 "headers": [self.headers[i]
                             for i in [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 45]],
                 "attributes": ["Code", "Name", "KnownGroupCode", "Religion1Code", "Religion2Code", "CountryCode", "Type1Code", "Type2Code", "Type3Code", "EthnicCode", "ADM1Code"],
-                "uniques": ["Code"]
+                "uniques": ["Actor2Code"]
             },
             "country": {
                 "headers": [],
@@ -104,7 +104,7 @@ class GdeltIntegrator(DataIntegrator):
             "eventid_and_date": {
                 "headers": [self.headers[i] for i in [0, 57, 26, 4, 56, 2, 3]],
                 "attributes": ["GlobalEventID", "SOURCEURL", "EventCode", "FractionDate", "Day", "MonthYear", "Year"],
-                "uniques": ["GlobalEventID"]
+                "uniques": ["GLOBALEVENTID"]
             }
         }
         super().__init__(self.table_names, self.tables)
@@ -132,6 +132,7 @@ class GdeltIntegrator(DataIntegrator):
             # return results
 
     def gdelt_wrapper(self, file: Dict, dl_path: str, table_names: List[str]) -> Optional[Tuple]:
+        print("Current file is:", file)
         result = self.downloader.download_file(file, dl_path)
         if result:
             csv_file, success = result

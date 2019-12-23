@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS data_management_fields
 
 CREATE TABLE IF NOT EXISTS event_geo
 (
-    ADM1Code    TEXT PRIMARY KEY,
+    ADM1Code    TEXT, --PRIMARY KEY,
     FeatureID   TEXT, -- TODO: Documentation says its a signed integer
     CountryCode TEXT,
     Lat         FLOAT,
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS event_geo
 
 CREATE TABLE IF NOT EXISTS actor
 (
-    Code           TEXT PRIMARY KEY,
+    Code           TEXT, --PRIMARY KEY,
     Name           TEXT,
     KnownGroupCode TEXT,
     Religion1Code  TEXT,
@@ -32,18 +32,18 @@ CREATE TABLE IF NOT EXISTS actor
 
 CREATE TABLE IF NOT EXISTS actor1
 (
-    Code     TEXT PRIMARY KEY,
-    ADM1Code TEXT,
-    FOREIGN KEY (ADM1Code) REFERENCES event_geo (ADM1Code)
+    Code     TEXT, --PRIMARY KEY,
+    ADM1Code TEXT
+    --FOREIGN KEY (ADM1Code) REFERENCES event_geo (ADM1Code)
 ) INHERITS (actor);
 
 
 
 CREATE TABLE IF NOT EXISTS actor2
 (
-    Code     TEXT PRIMARY KEY,
-    ADM1Code TEXT,
-    FOREIGN KEY (ADM1Code) REFERENCES event_geo (ADM1Code)
+    Code     TEXT, --PRIMARY KEY,
+    ADM1Code TEXT
+    --FOREIGN KEY (ADM1Code) REFERENCES event_geo (ADM1Code)
 ) INHERITS (actor);
 
 CREATE TABLE IF NOT EXISTS country
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS influence_income
 
 CREATE TABLE IF NOT EXISTS event_action
 (
-    EventCode      TEXT PRIMARY KEY,
+    EventCode      TEXT, --PRIMARY KEY,
     Actor1Code     TEXT,
     Actor2Code     TEXT,
     ADM1Code       TEXT, --TODO: Which ADM1Code is the right one?
@@ -106,12 +106,12 @@ CREATE TABLE IF NOT EXISTS event_action
     AvgTone        FLOAT,
     NumMentions    INTEGER,
     NumSources     INTEGER,
-    NumArticles    INTEGER,
+    NumArticles    INTEGER
 
-    FOREIGN KEY (Actor1Code) REFERENCES actor1 (Code) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (Actor2Code) REFERENCES actor2 (Code) DEFERRABLE INITIALLY DEFERRED,
-    FOREIGN KEY (ADM1Code) REFERENCES event_geo (ADM1Code) DEFERRABLE INITIALLY DEFERRED, --TODO: Is this the right ADM1Code?
-    FOREIGN KEY (TID) REFERENCES tourist (TID) DEFERRABLE INITIALLY DEFERRED
+    --FOREIGN KEY (Actor1Code) REFERENCES actor1 (Code) DEFERRABLE INITIALLY DEFERRED,
+    --FOREIGN KEY (Actor2Code) REFERENCES actor2 (Code) DEFERRABLE INITIALLY DEFERRED,
+    --FOREIGN KEY (ADM1Code) REFERENCES event_geo (ADM1Code) DEFERRABLE INITIALLY DEFERRED, --TODO: Is this the right ADM1Code?
+    --FOREIGN KEY (TID) REFERENCES tourist (TID) DEFERRABLE INITIALLY DEFERRED
 );
 
 CREATE TABLE IF NOT EXISTS eventid_and_date
@@ -122,9 +122,9 @@ CREATE TABLE IF NOT EXISTS eventid_and_date
     FractionDate  FLOAT,
     Day           INTEGER,
     MonthYear     INTEGER,
-    Year          INTEGER,
+    Year          INTEGER
 
     --FOREIGN KEY (SOURCEURL) REFERENCES data_management_fields (SOURCEURL), -- If SOURCEURL has no unique constraint, it cannot be a FOREIGNKEY
-    FOREIGN KEY (EventCode) REFERENCES event_action (EventCode) DEFERRABLE INITIALLY DEFERRED
+    --FOREIGN KEY (EventCode) REFERENCES event_action (EventCode) DEFERRABLE INITIALLY DEFERRED
 );
 
