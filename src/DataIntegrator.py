@@ -14,7 +14,8 @@ from psycopg2.errors import UniqueViolation, InFailedSqlTransaction
 from src.utils import *
 
 from typing import Tuple, Generator, List
-logging.basicConfig(filename='./raw_data/gdelt.log', filemode='w', level=logging.ERROR)
+logging.basicConfig(filename='./raw_data/gdelt.log',
+                    filemode='w', level=logging.ERROR)
 
 
 class DataIntegrator(object):
@@ -35,10 +36,10 @@ class DataIntegrator(object):
         with open(file_path, mode="r", encoding="utf8") as f:
             if limit:
                 data = pd.read_csv(f, nrows=limit, sep=seperator,
-                                   names=headers, encoding="utf8", na_filter=False, na_values=":", thousands=" ")
+                                   names=headers, encoding="utf8", na_filter=False, na_values=":", thousands=" ", low_memory=False)
             else:
                 data = pd.read_csv(
-                    f, sep=seperator, names=headers, encoding="utf8", na_filter=False, na_values=":", thousands=" ")
+                    f, sep=seperator, names=headers, encoding="utf8", na_filter=False, na_values=":", thousands=" ", low_memory=False)
 
             return data
 
@@ -68,9 +69,10 @@ class DataIntegrator(object):
             logging.info(f"Connected to: {cur.fetchone()}")
 
             return conn, cur
+
         except Exception as e:
+            print(e)
             logging.error("Could not connect to database!")
-            conn.close()
             return None, None
 
     def execute_script(self, script_path: str) -> None:
@@ -205,13 +207,13 @@ class DataIntegrator(object):
                     uniq = self.tables[table_name]["uniques"][i]
                     #print("The unique value is:", uniq)
 
-                    #new_df = new_df[new_df[self.tables[table_name]
+                    # new_df = new_df[new_df[self.tables[table_name]
                     #               ["uniques"][i]].notnull()]
                     new_df = new_df[new_df[self.tables[table_name]
-                                    ["uniques"][i]] != ""]
+                                           ["uniques"][i]] != ""]
                     new_df = new_df.drop_duplicates(subset=[self.tables[table_name]
-                                    ["uniques"][i]])
-                    #print("This is the new data:\n", new_df[self.tables[table_name]
+                                                            ["uniques"][i]])
+                    # print("This is the new data:\n", new_df[self.tables[table_name]
                     #               ["uniques"][i]])
 
                 s_buf = io.StringIO()  # Create string buffer
@@ -221,8 +223,8 @@ class DataIntegrator(object):
                 s_buf.seek(0)  # Reset read head to start of buffer
                 try:
                     cur.copy_from(s_buf, table_name, sep="\t", null="",
-                              columns=self.tables[table_name]["attributes"])
-                except Error as e:
+                                  columns=self.tables[table_name]["attributes"])
+                except Exception as e:
                     logging.error(e)
                     return
 
@@ -232,13 +234,13 @@ class DataIntegrator(object):
 
             if self.tables[table_name]["uniques"]:
                 uniq = self.tables[table_name]["uniques"][0]
-                #print(uniq)
+                # print(uniq)
 
                 new_df = new_df[new_df[self.tables[table_name]
-                               ["uniques"][0]] != ""]
+                                       ["uniques"][0]] != ""]
                 new_df = new_df.drop_duplicates(subset=[self.tables[table_name]
-                               ["uniques"][0]])
-                #print(new_df[self.tables[table_name]
+                                                        ["uniques"][0]])
+                # print(new_df[self.tables[table_name]
                 #               ["uniques"][0]])
 
             s_buf = io.StringIO()  # Create string buffer
@@ -248,8 +250,8 @@ class DataIntegrator(object):
             s_buf.seek(0)  # Reset read head to start of buffer
             try:
                 cur.copy_from(s_buf, table_name, sep="\t", null="",
-                          columns=self.tables[table_name]["attributes"])
-            except Erorr as e:
+                              columns=self.tables[table_name]["attributes"])
+            except Exception as e:
                 logging.error(e)
                 return
 

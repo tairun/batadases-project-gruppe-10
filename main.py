@@ -2,7 +2,6 @@
 
 import logging
 from argparse import ArgumentParser
-from concurrent.futures import as_completed, ALL_COMPLETED, wait
 from dotenv import load_dotenv
 
 from src.GdeltDownloader import GdeltDownloader
@@ -10,8 +9,8 @@ from src.GdeltIntegrator import GdeltIntegrator
 from src.IncomeIntegrator import IncomeIntegrator
 from src.TourismIntegrator import TourismIntegrator
 
-logging.basicConfig(level=logging.ERROR)
-logging.getLogger().disabled = True
+logging.basicConfig(level=logging.INFO)
+#logging.getLogger().disabled = True
 
 
 def main():
