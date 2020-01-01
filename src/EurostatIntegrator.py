@@ -5,7 +5,7 @@ from src.DataIntegrator import DataIntegrator
 
 class EurostatIntegrator(DataIntegrator):
     def __init(self):
-        super().__init__()
+        # super().__init__()
         self.data: str = None
 
     def extract_countries(self) -> None:

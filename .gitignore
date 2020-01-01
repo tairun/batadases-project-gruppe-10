@@ -17,3 +17,4 @@ raw_data/gdelt/*
 # Misc.
 objectdb
 ~*.xlsx
+*.log

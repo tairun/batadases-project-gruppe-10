@@ -5,7 +5,7 @@ from src.EurostatIntegrator import EurostatIntegrator
 
 class IncomeIntegrator(EurostatIntegrator):
     def __init__(self):
-        super().__init__()
+        # super().__init__()
         self.data = "./raw_data/ilc_di15_1_Data.csv"
 
         self.headers = ["Year", "Geo", "Unit",
