@@ -90,6 +90,7 @@ class DataIntegrator(object):
         Inserts the row into the database specified by conn, cur. The {table_name} specifies the table to be inserted into.
         """
         try:
+            print(self.tables)
             columns = self.tables[table_name]["headers"]
         except KeyError as e:
             logging.error(
@@ -147,6 +148,7 @@ class DataIntegrator(object):
             parameter_string = ','.join(['%s']*len(columns))
 
             # Extract relevant columns from dataframe and cast it to a list.
+            print(row)
             row_list = row[columns].values.tolist()
 
             # Do not perform insert if the first value is empty (which is always the primary key).
@@ -261,7 +263,7 @@ class DataIntegrator(object):
         num_rows = bufcount(file_path)
         conn, cur = self.connect_database(autocommit=False)
 
-        for row in tqdm(self.read_csv(file_path, seperator=seperator, headers=headers, limit=None), desc=f"Inserting {file_path} ...", total=num_rows, mininterval=5.0, miniters=1000):
+        for index, row in tqdm(self.read_csv(file_path, seperator=seperator, headers=headers, limit=None).iterrows(), desc=f"Inserting {file_path} ...", total=num_rows, mininterval=5.0, miniters=1000):
             for table_name in table_names:
                 self.insert_data(conn, cur, row, table_name)
 

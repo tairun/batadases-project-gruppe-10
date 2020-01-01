@@ -10,7 +10,7 @@ from src.IncomeIntegrator import IncomeIntegrator
 from src.TourismIntegrator import TourismIntegrator
 
 logging.basicConfig(level=logging.INFO)
-#logging.getLogger().disabled = True
+# logging.getLogger().disabled = True
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
     # Download the individual files and extract the content from the zip archives
 
     _ = input(f"Press 'Enter' to start the integration process ...")
-    #integrator1 = GdeltIntegrator(start_date, end_date)
+    # integrator1 = GdeltIntegrator(start_date, end_date)
     table_names_1 = ["data_management_fields", "event_geo", "actor1", "actor2",
                      "event_action", "eventid_and_date"]  # Smaller table list to fill.
     # Actually insert the data.
@@ -35,13 +35,13 @@ def main():
 
     # integrator1.insert_wrapper(
     #    integrator1.data, headers=integrator1.headers, seperator="\t", table_names=table_names_1)
-    #results = integrator1.download_and_integrate(table_names=table_names_1)
+    # results = integrator1.download_and_integrate(table_names=table_names_1)
 
-    integrator2 = IncomeIntegrator()
+    # integrator2 = IncomeIntegrator()
     table_names_2 = ["income"]  # Smaller table list to fill.
 
-    integrator2.insert_wrapper(
-        integrator2.data, headers=integrator2.headers, table_names=table_names_2)
+    # integrator2.insert_wrapper(
+    # integrator2.data, headers = integrator2.headers, table_names = table_names_2)
 
     integrator3 = TourismIntegrator()
     table_names_3 = ["tourist"]  # Smaller table list to fill.
