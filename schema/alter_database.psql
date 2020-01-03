@@ -1,0 +1,20 @@
+ALTER TABLE event_geo ADD column id serial;
+
+DELETE
+FROM
+    event_geo a
+        USING event_geo b
+WHERE
+    a.id < b.id
+    AND a.adm1code = b.adm1code;
+
+DELETE FROM event_geo
+WHERE id IN
+    (SELECT id
+    FROM
+        (SELECT id,
+         ROW_NUMBER() OVER( PARTITION BY adm1code
+        ORDER BY id DESC ) AS row_num
+        FROM event_geo ) t
+        WHERE t.row_num > 1 );
+        
