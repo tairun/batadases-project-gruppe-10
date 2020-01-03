@@ -1,5 +1,7 @@
 # General files
 *.zip
+*.bak
+*.sav
 
 # Credentials
 .env
