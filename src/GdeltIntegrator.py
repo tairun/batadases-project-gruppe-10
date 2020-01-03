@@ -109,29 +109,24 @@ class GdeltIntegrator(DataIntegrator):
         }
         super().__init__(self.table_names, self.tables)
 
-    def download_and_integrate(self, max_workers: int = None, table_names: List[str] = None) -> None:
+    def download_and_integrate(self, max_workers: Optional[int] = None, table_names: List[str] = None) -> None:
         _ = input("Press 'Enter' to start download and extraction process ...")
-        max_workers = max_workers if max_workers else self.downloader.max_workers
         table_names = table_names if table_names else self.table_names
 
         file_list = self.downloader.get_file_links()
 
-        for file in tqdm(file_list, desc="Working on GDELT files ...", mininterval=5.0):
-            print(file)
-            logging.info(file)
-            self.gdelt_wrapper(file, self.downloader.dl_path, table_names)
+        # Assume we want to do everything in the main thread.
+        if not max_workers:
+            for file in tqdm(file_list, desc="Downloading and integrating GDELT files ...", mininterval=5.0):
+                logging.info(file)
+                self.gdelt_wrapper(file, self.downloader.dl_path, table_names)
 
-            # TODO: Test multiprocessing.Pool implementation
-            # results = Queue()
-            # with Pool(processes=2) as p:
-            #    p.starmap(self.gdelt_wrapper, [file_list,
-            #                                  repeat(self.downloader.dl_path)])
-            # FIXME: ThreadPoolExecutor does not behave like I want.
-            # executor = ThreadPoolExecutor(max_workers=max_workers)
-            # results = tqdm(executor.map(
-            #    self.gdelt_wrapper, file_list, repeat(self.downloader.dl_path)), desc="Downloading and integrating GDELT ...")
-
-            # return results
+        # Lets start some threads, shall we?
+        else:
+            logging.info(f"Starting {max_workers} thread(s).")
+            executor = ThreadPoolExecutor(max_workers=max_workers)
+            results = tqdm(executor.map(
+                self.gdelt_wrapper, file_list, repeat(self.downloader.dl_path)), desc="Downloading and integrating GDELT files ...")
 
     def gdelt_wrapper(self, file: Dict, dl_path: str, table_names: List[str]) -> Optional[Tuple]:
         result = self.downloader.download_file(file, dl_path)
