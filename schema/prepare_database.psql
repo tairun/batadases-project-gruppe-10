@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS data_management_fields
 (
     ID        SERIAL PRIMARY KEY,
+    GlobalEventID INTEGER,
     DATEADDED INTEGER,
     SOURCEURL TEXT
 );
@@ -93,7 +94,8 @@ CREATE TABLE IF NOT EXISTS influence_income
 
 CREATE TABLE IF NOT EXISTS event_action
 (
-    EventCode      TEXT, --PRIMARY KEY,
+    GlobalEventID  INTEGER,
+    EventCode      TEXT,
     Actor1Code     TEXT,
     Actor2Code     TEXT,
     ADM1Code       TEXT, --TODO: Which ADM1Code is the right one?
@@ -117,8 +119,6 @@ CREATE TABLE IF NOT EXISTS event_action
 CREATE TABLE IF NOT EXISTS eventid_and_date
 (
     GlobalEventID INTEGER PRIMARY KEY,
-    SOURCEURL     TEXT,
-    EventCode     TEXT,
     FractionDate  FLOAT,
     Day           INTEGER,
     MonthYear     INTEGER,

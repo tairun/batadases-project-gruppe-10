@@ -1,12 +1,6 @@
-ALTER TABLE event_geo ADD column id serial;
+-- OPERATE ON EVENT_GEO
 
-DELETE
-FROM
-    event_geo a
-        USING event_geo b
-WHERE
-    a.id < b.id
-    AND a.adm1code = b.adm1code;
+ALTER TABLE event_geo ADD column id serial;
 
 DELETE FROM event_geo
 WHERE id IN
@@ -17,4 +11,57 @@ WHERE id IN
         ORDER BY id DESC ) AS row_num
         FROM event_geo ) t
         WHERE t.row_num > 1 );
-        
+
+ALTER TABLE event_geo DROP column id;
+ALTER TABLE event_geo add primary key (adm1code);
+
+
+-- OPERATE ON ACTOR
+
+ALTER TABLE actor1 ADD column id serial;
+
+DELETE FROM actor1
+WHERE id IN
+    (SELECT id
+    FROM
+        (SELECT id,
+         ROW_NUMBER() OVER( PARTITION BY code
+        ORDER BY id DESC ) AS row_num
+        FROM actor1 ) t
+        WHERE t.row_num > 1 );
+
+ALTER TABLE actor2 ADD column id serial;
+
+DELETE FROM actor2
+WHERE id IN
+    (SELECT id
+    FROM
+        (SELECT id,
+         ROW_NUMBER() OVER( PARTITION BY code
+        ORDER BY id DESC ) AS row_num
+        FROM actor2 ) t
+        WHERE t.row_num > 1 );
+
+ALTER TABLE actor1 add primary key (code);
+ALTER TABLE actor1 ADD FOREIGN KEY (adm1code) REFERENCES event_geo(adm1code);
+ALTER TABLE actor2 add primary key (code);
+ALTER TABLE actor2 ADD FOREIGN KEY (adm1code) REFERENCES event_geo(adm1code);
+
+ALTER TABLE event_action ADD FOREIGN KEY (actor1code) REFERENCES actor1(code);
+ALTER TABLE event_action ADD FOREIGN KEY (actor2code) REFERENCES actor2(code);
+ALTER TABLE event_action ADD FOREIGN KEY (adm1code) REFERENCES event_geo(adm1code);
+
+ALTER TABLE "data_management_fields"
+ALTER "id" TYPE integer,
+ALTER "id" SET DEFAULT nextval('data_management_fields_id_seq'),
+ALTER "id" SET NOT NULL;
+ALTER TABLE "data_management_fields" RENAME "id" TO "dataid";
+COMMENT ON COLUMN "data_management_fields"."dataid" IS '';
+COMMENT ON TABLE "data_management_fields" IS '';
+
+ALTER TABLE "event_action"
+ADD "eventactionid" serial NOT NULL;
+COMMENT ON TABLE "event_action" IS '';
+
+ALTER TABLE "event_action"
+ADD CONSTRAINT "event_action_eventactionid" PRIMARY KEY ("eventactionid");
