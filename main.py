@@ -27,18 +27,18 @@ def main():
     # Download the individual files and extract the content from the zip archives
 
     _ = input(f"Press 'Enter' to start the integration process ...")
-    # integrator1 = GdeltIntegrator(start_date, end_date)
+    integrator1 = GdeltIntegrator(start_date, end_date)
     table_names_1 = ["data_management_fields", "event_geo", "actor1", "actor2",
                      "event_action", "eventid_and_date"]  # Smaller table list to fill.
     # Actually insert the data.
-    # integrator1.execute_script(integrator1.table_script)  # Create the tables.
+    integrator1.execute_script(integrator1.table_script)  # Create the tables.
 
-    # integrator1.insert_wrapper(
+    # integrator1.insert_wrapper2(
     #    integrator1.data, headers=integrator1.headers, seperator="\t", table_names=table_names_1)
     # results = integrator1.download_and_integrate(table_names=table_names_1)
 
     # integrator2 = IncomeIntegrator()
-    table_names_2 = ["income"]  # Smaller table list to fill.
+    # table_names_2 = ["income"]  # Smaller table list to fill.
 
     # integrator2.insert_wrapper(
     # integrator2.data, headers = integrator2.headers, table_names = table_names_2)
