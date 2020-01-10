@@ -47,8 +47,8 @@ class GdeltIntegrator(DataIntegrator):
 
         self.tables = {
             "data_management_fields": {
-                "headers": [self.headers[i] for i in [56, 57]],
-                "attributes": ["DATEADDED", "SOURCEURL"],
+                "headers": [self.headers[i] for i in [0, 56, 57]],
+                "attributes": ["GlobalEventID","DATEADDED", "SOURCEURL"],
                 "uniques": []  # FIXME ["SOURCEURL"]
             },
             "event_geo": {
@@ -97,13 +97,13 @@ class GdeltIntegrator(DataIntegrator):
             },
             "event_action": {
                 "headers": [self.headers[i] for i in [
-                    26, 5, 15, 52, 27, 28, 25, 30, 29, 34, 31, 32, 33]],
-                "attributes": ["EventCode", "Actor1Code", "Actor2Code", "ADM1Code", "EventBaseCode", "EventRootCode", "IsRootEvent", "GoldsteinScale", "QuadClass", "AvgTone", "NumMentions", "NumSources", "NumArticles"],
-                "uniques": ["EventCode"]
+                    0, 26, 5, 15, 52, 27, 28, 25, 30, 29, 34, 31, 32, 33]],
+                "attributes": ["GLobalEventID", "EventCode", "Actor1Code", "Actor2Code", "ADM1Code", "EventBaseCode", "EventRootCode", "IsRootEvent", "GoldsteinScale", "QuadClass", "AvgTone", "NumMentions", "NumSources", "NumArticles"],
+                "uniques": []
             },
             "eventid_and_date": {
-                "headers": [self.headers[i] for i in [0, 57, 26, 4, 56, 2, 3]],
-                "attributes": ["GlobalEventID", "SOURCEURL", "EventCode", "FractionDate", "Day", "MonthYear", "Year"],
+                "headers": [self.headers[i] for i in [0, 4, 56, 2, 3]],
+                "attributes": ["GlobalEventID", "FractionDate", "Day", "MonthYear", "Year"],
                 "uniques": ["GLOBALEVENTID"]
             }
         }

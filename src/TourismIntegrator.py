@@ -6,7 +6,7 @@ class TourismIntegrator(EurostatIntegrator):
         # super().__init__()
         self.data = "./raw_data/tour_occ_nim_1_Data.csv"
 
-        self.headers = ["Time", "Geo", "RESID" "Unit",
+        self.headers = ["Time", "Geo", "RESID", "Unit",
                         "Accommodation", "Value", "Flags"]
 
         self.table_names = ["country", "tourist"]

@@ -90,7 +90,6 @@ class DataIntegrator(object):
         Inserts the row into the database specified by conn, cur. The {table_name} specifies the table to be inserted into.
         """
         try:
-            print(self.tables)
             columns = self.tables[table_name]["headers"]
         except KeyError as e:
             logging.error(
@@ -148,7 +147,8 @@ class DataIntegrator(object):
             parameter_string = ','.join(['%s']*len(columns))
 
             # Extract relevant columns from dataframe and cast it to a list.
-            print(row)
+            # print(row)
+            # _ = input("Pause...")
             row_list = row[columns].values.tolist()
 
             # Do not perform insert if the first value is empty (which is always the primary key).
@@ -185,7 +185,6 @@ class DataIntegrator(object):
                 logging.error(
                     f"Transaction stopped. Rolling back...: {table_name}")
                 logging.info(e)
-                # conn.rollback()
                 pass
 
     def insert_data2(self, conn, cur, df: pd.DataFrame, table_name: str) -> None:
@@ -273,7 +272,6 @@ class DataIntegrator(object):
 
     def insert_wrapper2(self, file_path, headers: List[str], seperator: str = ",", table_names: List[str] = None) -> None:
         table_names = table_names if table_names else self.table_names
-
         num_rows = bufcount(file_path)
         conn, cur = self.connect_database(autocommit=False)
 

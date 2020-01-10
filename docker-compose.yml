@@ -9,7 +9,7 @@ services:
     # empty
     volumes:
       - db_data:/var/lib/postgresql/data
-      - ./db_dump:/dump
+      - ./db_dump:/db_dump
     ports:
       - 5432:5432
 
