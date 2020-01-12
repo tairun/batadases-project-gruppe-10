@@ -21,7 +21,7 @@ def main():
     start_date = (2015, 1, 1)
     end_date = (2017, 12, 31)
 
-    gdelt_raw_data = "./raw_data/gdelt"  # Specify the download directory
+    gdelt_raw_data = "./data/gdelt"  # Specify the download directory
     # Create the downloader object
     # Parse the download page and extract all the links
     # Download the individual files and extract the content from the zip archives
