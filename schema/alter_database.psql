@@ -65,3 +65,25 @@ COMMENT ON TABLE "event_action" IS '';
 
 ALTER TABLE "event_action"
 ADD CONSTRAINT "event_action_eventactionid" PRIMARY KEY ("eventactionid");
+
+
+INSERT INTO country (cid)
+SELECT
+   DISTINCT cid
+FROM
+   tourist
+UNION
+SELECT
+   DISTINCT cid
+FROM
+   income
+;
+
+ALTER TABLE "country"
+ADD CONSTRAINT "country_cid" PRIMARY KEY ("cid");
+
+ALTER TABLE "tourist"
+ADD FOREIGN KEY ("cid") REFERENCES "country" ("cid")
+
+ALTER TABLE "income"
+ADD FOREIGN KEY ("cid") REFERENCES "country" ("cid")

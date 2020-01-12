@@ -49,8 +49,7 @@ CREATE TABLE IF NOT EXISTS actor2
 
 CREATE TABLE IF NOT EXISTS country
 (
-    CID      SERIAL PRIMARY KEY,
-    Geo_Name VARCHAR(99) NOT NULL UNIQUE
+    CID      TEXT PRIMARY KEY,
 );
 
 CREATE TABLE IF NOT EXISTS income
@@ -99,7 +98,6 @@ CREATE TABLE IF NOT EXISTS event_action
     Actor1Code     TEXT,
     Actor2Code     TEXT,
     ADM1Code       TEXT, --TODO: Which ADM1Code is the right one?
-    TID            INTEGER, -- Will be determined during analysis. Also FK for a SERIAL field
     EventBaseCode  TEXT,
     EventRootCode  TEXT,
     IsRootEvent    INTEGER, --TODO: This could be a boolean!
