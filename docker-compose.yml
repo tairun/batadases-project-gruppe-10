@@ -12,6 +12,7 @@ services:
       - ./db_dump:/db_dump
     ports:
       - 5432:5432
+    shm_size: 2gb
 
   adminer:
     image: adminer
