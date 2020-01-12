@@ -48,7 +48,7 @@ class GdeltIntegrator(DataIntegrator):
         self.tables = {
             "data_management_fields": {
                 "headers": [self.headers[i] for i in [0, 56, 57]],
-                "attributes": ["GlobalEventID","DATEADDED", "SOURCEURL"],
+                "attributes": ["GlobalEventID", "DATEADDED", "SOURCEURL"],
                 "uniques": []  # FIXME ["SOURCEURL"]
             },
             "event_geo": {

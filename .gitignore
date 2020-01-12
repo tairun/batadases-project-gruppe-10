@@ -1,5 +1,6 @@
 # General files
 *.zip
+!reports/*.zip
 *.bak
 *.sav
 
@@ -20,3 +21,4 @@ raw_data/gdelt/*
 objectdb
 ~*.xlsx
 *.log
+~*

@@ -22,7 +22,7 @@
 ### SQL dump
 
 1. Open a shell to the database docker container: ` docker exec -it <container-name> /bin/ash`
-2. Use the `pg_dump` command to create a database dump: `pg_dump -U db-proj -d db-proj-hs19 -f /db_dump/dump_`date +%d-%m-%Y"_"%H_%M_%S`.sqldump`
+2. Use the `pg_dump` command to create a database dump: `pg_dump -U db-proj -d db-proj-hs19 -Fc -f /db_dump/dump_`date +%d-%m-%Y"_"%H_%M_%S`.sqldump`
 3. The `/dump` folder from the container is mounter locally in the repository as `./db_dump/`, where you can find the created sql dump.
 
 **Restore dump:** Copy the dump into the `./db_dump/` direcotry. Spawn a shell in the container and run the following command: `psql <dbname> < /dump/<dumpfile>`
