@@ -24,7 +24,7 @@ class GdeltDownloader(object):
     Class description.
     """
 
-    def __init__(self, start_date: Tuple[int, int, int], end_date: Tuple[int, int, int], url: str = "http://data.gdeltproject.org/events/", dl_path: str = "./raw_data/gedlt"):
+    def __init__(self, start_date: Tuple[int, int, int], end_date: Tuple[int, int, int], url: str = "http://data.gdeltproject.org/events/", dl_path: str = "./data/gedlt"):
         super().__init__()
         now = datetime.now()
         start_date if start_date else (1970, 1, 1)

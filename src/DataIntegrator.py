@@ -14,7 +14,7 @@ from psycopg2.errors import UniqueViolation, InFailedSqlTransaction
 from src.utils import *
 
 from typing import Tuple, Generator, List
-logging.basicConfig(filename='./raw_data/gdelt.log',
+logging.basicConfig(filename='./data/gdelt.log',
                     filemode='w', level=logging.ERROR)
 
 

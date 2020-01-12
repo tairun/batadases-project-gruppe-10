@@ -23,10 +23,10 @@ class GdeltIntegrator(DataIntegrator):
     Class description.
     """
 
-    def __init__(self, start_date: Tuple[int, int, int], end_date: Tuple[int, int, int], url: str = "http://data.gdeltproject.org/events/", dl_path: str = "./raw_data/gdelt"):
+    def __init__(self, start_date: Tuple[int, int, int], end_date: Tuple[int, int, int], url: str = "http://data.gdeltproject.org/events/", dl_path: str = "./data/gdelt"):
         self.downloader = GdeltDownloader(start_date, end_date, url, dl_path)
         self.table_script = "./schema/prepare_database.psql"
-        self.data = "./raw_data/20191027.export.CSV"
+        self.data = "./data/20191027.export.CSV"
 
         self.table_names = ["data_management_fields", "event_geo", "actor", "actor1", "actor2",
                             "country", "income", "tourist", "influence_income", "event_action", "eventid_and_date"]

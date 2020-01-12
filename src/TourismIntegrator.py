@@ -4,7 +4,7 @@ from src.EurostatIntegrator import EurostatIntegrator
 class TourismIntegrator(EurostatIntegrator):
     def __init__(self):
         # super().__init__()
-        self.data = "./raw_data/tour_occ_nim_1_Data.csv"
+        self.data = "./data/tour_occ_nim_1_Data.csv"
 
         self.headers = ["Time", "Geo", "RESID", "Unit",
                         "Accommodation", "Value", "Flags"]
